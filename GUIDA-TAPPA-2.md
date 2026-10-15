@@ -57,7 +57,7 @@ src/
     └── dashboard.js      ← (aggiornata) la dashboard
 public/js/
 ├── nuova-scadenza.js     ← il modulo diventa "furbo" nel browser
-└── scadenzario.js        ← filtri automatici e righe cliccabili
+└── pannelli.js           ← pannello laterale, finestra di inserimento, clic e doppio clic
 test/
 ├── termini.test.js       ← ★ 15 casi di calcolo, da far controllare a Daniela
 └── scadenze.test.js      ← 17 prove di permessi e azioni
@@ -107,6 +107,29 @@ le richieste "di nascosto", senza passare dai pulsanti.
 Il modulo e i pulsanti sono normali moduli HTML: il server fa tutto il lavoro.
 JavaScript aggiunge solo comodità (mostrare i campi giusti, l'anteprima). È una scelta
 di robustezza: se qualcosa va storto nel browser, l'app resta utilizzabile.
+
+### Aggiornamento: pannello laterale, finestra e tema
+
+Dopo la prima prova abbiamo riportato nell'app il comportamento del mockup:
+
+- **Clic** su una riga (o su una voce della dashboard) → il **pannello laterale** scorre da destra.
+- **Doppio clic** → la pagina intera, **sempre in una nuova scheda**. Anche il pulsante
+  "Apri in una nuova scheda ↗" in cima al pannello.
+- **+ Nuova scadenza** → il modulo si apre in una **finestra sovrapposta**; salvando,
+  la nuova scadenza si apre subito nel pannello.
+- **☾ Scuro / ☀ Chiaro** in alto: tema personale, salvato nel profilo di ognuno.
+
+Come funziona, in `public/js/pannelli.js`:
+
+- Il browser chiede al server **solo il pezzo di pagina** che serve, aggiungendo
+  l'intestazione `X-Parziale: 1`. Il server risponde con il solo dettaglio (o il solo modulo).
+- Le azioni nel pannello (stato, note…) partono con **fetch**, cioè "dietro le quinte":
+  la pagina non cambia, poi pannello e tabella si aggiornano da soli.
+- **Clic o doppio clic?** Al primo clic il programma aspetta un quarto di secondo:
+  se arriva un secondo clic è un doppio clic e apre la nuova scheda; altrimenti apre il pannello.
+- Il tema è una colonna nuova nella tabella `utenti` (`tema`). In `db/database.js`,
+  `aggiornaTabelle` la aggiunge ai database già esistenti senza perdere dati: è una
+  piccola **migrazione**, il modo in cui un database cresce insieme all'app.
 
 ---
 

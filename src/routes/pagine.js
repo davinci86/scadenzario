@@ -28,6 +28,20 @@ function rottePagine(db) {
     }));
   });
 
+  // Tema chiaro/scuro: una preferenza personale, salvata nel profilo.
+  router.post("/preferenze/tema", richiediAccesso, (req, res) => {
+    const nuovo = req.utente.tema === "scuro" ? "chiaro" : "scuro";
+    db.prepare("UPDATE utenti SET tema = ? WHERE id = ?").run(nuovo, req.utente.id);
+    // Torniamo alla pagina da cui si è premuto il pulsante (solo se è del nostro sito)
+    const provenienza = req.get("Referer");
+    let destinazione = "/";
+    try {
+      const url = new URL(provenienza);
+      if (url.host === req.get("Host")) destinazione = url.pathname + url.search;
+    } catch { /* nessuna provenienza valida: si torna alla dashboard */ }
+    res.redirect(destinazione);
+  });
+
   // Utenti e registro: solo per l'Admin.
   router.get("/admin/utenti", richiediRuolo("admin"), (req, res) => {
     const utenti = db

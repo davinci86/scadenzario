@@ -20,7 +20,18 @@ function apriDatabase(percorso) {
   db.exec("PRAGMA foreign_keys = ON;");
 
   creaTabelle(db);
+  aggiornaTabelle(db);
   return db;
+}
+
+// Aggiunge le colonne nate dopo la creazione delle tabelle.
+// (Così un database già esistente si aggiorna da solo, senza perdere dati.)
+function aggiornaTabelle(db) {
+  const colonne = (tabella) => db.prepare(`PRAGMA table_info(${tabella})`).all().map((c) => c.name);
+  if (!colonne("utenti").includes("tema")) {
+    // La preferenza personale chiaro/scuro
+    db.exec("ALTER TABLE utenti ADD COLUMN tema TEXT NOT NULL DEFAULT 'chiaro'");
+  }
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,

@@ -8,7 +8,8 @@ const { esc, layout } = require("./html");
 const { TIPI, EVENTI } = require("../dominio/stati");
 const config = require("../config");
 
-function paginaNuova(utente, atti, utenti, valori = {}, errori = []) {
+// Solo il modulo: si usa nella finestra sovrapposta e nella pagina.
+function moduloNuova(atti, utenti, valori = {}, errori = []) {
   const v = (campo) => esc(valori[campo] ?? "");
   const tipo = TIPI[valori.tipo] ? valori.tipo : "scadenza";
   const squadraScelta = new Set([].concat(valori.squadra ?? []).map(String));
@@ -20,13 +21,8 @@ function paginaNuova(utente, atti, utenti, valori = {}, errori = []) {
     .map((a) => `<option value="${a.id}" data-tipo="${a.tipo}" data-evento="${esc(EVENTI[a.evento])}" data-regola="${esc(a.regolaTesto)}"${String(valori.atto) === String(a.id) ? " selected" : ""}>${esc(a.nome)}</option>`)
     .join("")}</optgroup>`).join("");
 
-  return layout({
-    titolo: "Nuova scadenza",
-    utente,
-    attiva: "scadenzario",
-    script: ["nuova-scadenza.js"],
-    contenuto: `
-<h1>Nuova scadenza</h1>
+  return `
+<h2 class="titolo-finestra">Nuova scadenza</h2>
 ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> ${errori.map(esc).join(" ")}</div>` : ""}
 <form method="post" action="/scadenze" class="pannello modulo-grande" id="nuova">
 
@@ -83,9 +79,19 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
     </div>
   </fieldset>
 
-  <div class="azioni"><a class="btn" href="/scadenzario">Annulla</a><button class="btn pri" type="submit">Inserisci nello scadenzario</button></div>
-</form>`,
+  <div class="azioni"><a class="btn" href="/scadenzario" data-chiudi>Annulla</a><button class="btn pri" type="submit">Inserisci nello scadenzario</button></div>
+</form>`;
+}
+
+// La pagina intera (serve solo se JavaScript è spento)
+function paginaNuova(utente, atti, utenti, valori, errori) {
+  return layout({
+    titolo: "Nuova scadenza",
+    utente,
+    attiva: "scadenzario",
+    script: ["nuova-scadenza.js"],
+    contenuto: moduloNuova(atti, utenti, valori, errori),
   });
 }
 
-module.exports = { paginaNuova };
+module.exports = { paginaNuova, moduloNuova };

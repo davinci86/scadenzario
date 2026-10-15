@@ -25,12 +25,13 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
       <div class="io">
         <span class="av">${esc(iniziali(utente.nome))}</span>
         <span class="chi"><b>${esc(utente.nome)}</b><span class="ruolo ${esc(utente.ruolo)}">${RUOLI[utente.ruolo]}</span></span>
+        <form method="post" action="/preferenze/tema"><button class="interruttore" type="submit" title="Cambia tra tema chiaro e scuro">${utente.tema === "scuro" ? "☀ Chiaro" : "☾ Scuro"}</button></form>
         <form method="post" action="/logout"><button class="link" type="submit">Esci</button></form>
       </div>`
     : "";
 
   return `<!doctype html>
-<html lang="it">
+<html lang="it" data-tema="${utente?.tema === "scuro" ? "scuro" : "chiaro"}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

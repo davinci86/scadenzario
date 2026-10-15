@@ -2,7 +2,8 @@
    STILE
    Colori e caratteri sono "variabili" (--nome): si cambiano qui
    una volta sola e cambiano in tutta l'app. Il secondo blocco
-   ridefinisce i colori per chi usa il tema scuro.
+   Di base il tema è chiaro, come un foglio Word; chi vuole può
+   scegliere il tema scuro dall'interruttore in alto.
    Niente caratteri da internet: l'app deve funzionare anche senza
    connessione, quindi usiamo quelli già presenti sul computer.
    ───────────────────────────────────────────────────────────── */
@@ -32,31 +33,31 @@
   --font-documento: "Times New Roman", Times, Georgia, serif;
   --font-interfaccia: -apple-system, "Segoe UI", system-ui, sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --sfondo: #16181c;
-    --carta: #22252a;
-    --testo: #e8e9eb;
-    --tenue: #9ba1ab;
-    --linea: #3a3e45;
-    --accento: #e07494;
-    --accento-testo: #1a0b10;
-    --accento-tenue: #3a2129;
-    --errore: #ff7a6e;
-    --errore-tenue: #3d1f1c;
-    --avviso-tenue: #3a2d17;
-    --rosso: #ff7a6e;
-    --ambra: #f2b35b;
-    --ambra-tenue: #3a2d17;
-    --regola: #8e949e;
-    --testata-tabella: #2b2f35;
-    --ev-giallo: #575020;
-    --ev-turchese: #1e4b4e;
-    --ev-rosa: #55284a;
-    --ev-verde: #2a4b25;
-    --ev-grigio: #3c3f45;
-    color-scheme: dark;
-  }
+
+/* Tema scuro: si attiva con l'interruttore in alto (preferenza personale) */
+:root[data-tema="scuro"] {
+  --sfondo: #16181c;
+  --carta: #22252a;
+  --testo: #e8e9eb;
+  --tenue: #9ba1ab;
+  --linea: #3a3e45;
+  --accento: #e07494;
+  --accento-testo: #1a0b10;
+  --accento-tenue: #3a2129;
+  --errore: #ff7a6e;
+  --errore-tenue: #3d1f1c;
+  --avviso-tenue: #3a2d17;
+  --rosso: #ff7a6e;
+  --ambra: #f2b35b;
+  --ambra-tenue: #3a2d17;
+  --regola: #8e949e;
+  --testata-tabella: #2b2f35;
+  --ev-giallo: #575020;
+  --ev-turchese: #1e4b4e;
+  --ev-rosa: #55284a;
+  --ev-verde: #2a4b25;
+  --ev-grigio: #3c3f45;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -231,3 +232,31 @@ table.word .vuota { text-align: center; font-style: italic; padding: 20px; }
 .persone { display: grid; gap: 6px; }
 .persona { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .azioni { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ── Pannello laterale e finestra sovrapposta ──────────────── */
+body.senza-scorrimento { overflow: hidden; }
+.velo { position: fixed; inset: 0; background: rgba(10, 12, 16, .35); }
+.laterale, .finestra { position: fixed; inset: 0; z-index: 50; }
+.cassetto { position: absolute; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--sfondo);
+  box-shadow: -8px 0 24px rgba(0,0,0,.12); display: flex; flex-direction: column; }
+.cassetto-testa { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--carta); border-bottom: 1px solid var(--linea); }
+.cassetto-corpo { overflow-y: auto; padding: 16px 16px 40px; }
+.chiudi { background: none; border: 1px solid var(--linea); border-radius: 7px; width: 34px; height: 34px; font-size: 20px; line-height: 1; cursor: pointer; }
+/* Nel pannello stretto, una colonna sola, con i dati in cima */
+.cassetto .griglia { grid-template-columns: minmax(0, 1fr); gap: 0; }
+/* dati in cima, poi stato/squadra/note/storico, in fondo gli strumenti dell'Editor */
+.cassetto .colonna-destra { display: contents; }
+.cassetto .blocco-dati { order: -1; }
+.cassetto .blocco-strumenti { order: 1; }
+.cassetto .testata h1 { font-size: 24px; }
+.finestra { display: grid; place-items: start center; overflow-y: auto; padding: 5vh 16px; }
+.finestra-box { position: relative; background: var(--carta); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.2); width: min(780px, 100%); padding: 22px 24px; }
+.finestra-box .modulo-grande { border: 0; padding: 0; margin: 0; max-width: none; }
+.titolo-finestra { font-family: var(--font-documento); font-size: 24px; color: var(--testo); text-transform: none; letter-spacing: 0; margin: 0 0 14px; }
+@media (prefers-reduced-motion: no-preference) {
+  .laterale:not([hidden]) .cassetto { animation: entra .2s ease-out; }
+  @keyframes entra { from { transform: translateX(40px); opacity: .5; } to { transform: none; opacity: 1; } }
+}
+
+.interruttore { background: none; border: 1px solid var(--linea); border-radius: 999px; padding: 3px 10px; font-size: 13px; color: var(--tenue); cursor: pointer; }

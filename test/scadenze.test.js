@@ -201,3 +201,37 @@ test("l'anteprima del calcolo risponde con la data e la spiegazione", async (t) 
   assert.equal(dati.data, "2026-09-21");
   assert.match(dati.spiegazione, /esclusi 31 giorni di agosto/);
 });
+
+test("per il pannello laterale il server manda solo il dettaglio, senza la pagina intorno", async (t) => {
+  const { db, indirizzo } = await avviaApp(t, { conDati: true });
+  const { cookie } = await accedi(indirizzo, "a.ferrara");
+  const s = scadenza(db, "Kone Ibrahim");
+  const html = await (await fetch(`${indirizzo}/scadenze/${s.id}`, { headers: { cookie, "X-Parziale": "1" } })).text();
+  assert.doesNotMatch(html, /<html/);
+  assert.match(html, /Kone Ibrahim/);
+});
+
+test("un'azione dal pannello risponde in JSON, anche con l'errore", async (t) => {
+  const { db, indirizzo } = await avviaApp(t, { conDati: true });
+  const { cookie } = await accedi(indirizzo, "p.russo");
+  const s = scadenza(db, "Popescu Elena");
+  const r = await fetch(`${indirizzo}/scadenze/${s.id}/correggi`, {
+    method: "POST",
+    headers: { cookie, "X-Parziale": "1", "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ data: "2027-01-15", motivo: "" }),
+  });
+  assert.equal(r.status, 400);
+  assert.deepEqual(await r.json(), { id: s.id, errore: "Scrivi il motivo della correzione." });
+});
+
+test("dalla finestra di inserimento, una scadenza salvata risponde con il suo numero", async (t) => {
+  const { db, indirizzo } = await avviaApp(t, { conDati: true });
+  const { cookie } = await accedi(indirizzo, "p.russo");
+  const r = await fetch(`${indirizzo}/scadenze`, {
+    method: "POST",
+    headers: { cookie, "X-Parziale": "1", "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ tipo: "udienza", cliente: "Finestra Prova", attivita: "Udienza", data: "2026-12-02", ora: "09:00" }),
+  });
+  const { id } = await r.json();
+  assert.equal(id, scadenza(db, "Finestra Prova").id);
+});

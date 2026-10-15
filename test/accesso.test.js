@@ -132,3 +132,14 @@ test("un nome con caratteri speciali viene mostrato come testo, non eseguito", a
   assert.equal(html.includes("<script>alert(1)</script>"), false);
   assert.match(html, /&lt;script&gt;/);
 });
+
+test("il tema chiaro/scuro è una scelta personale che resta salvata", async (t) => {
+  const { indirizzo } = await avviaApp(t);
+  const { cookie } = await accedi(indirizzo, "m.deluca", "demo");
+  assert.match(await (await apri(indirizzo, "/", cookie)).text(), /data-tema="chiaro"/);
+  await fetch(indirizzo + "/preferenze/tema", { method: "POST", redirect: "manual", headers: { cookie } });
+  assert.match(await (await apri(indirizzo, "/", cookie)).text(), /data-tema="scuro"/);
+  // Un altro utente resta con il tema chiaro
+  const altro = (await accedi(indirizzo, "a.ferrara", "demo")).cookie;
+  assert.match(await (await apri(indirizzo, "/", altro)).text(), /data-tema="chiaro"/);
+});

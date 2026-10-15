@@ -15,7 +15,7 @@ function saluto(ora = new Date().getHours()) {
 
 // Una riga dell'elenco: data, cliente, attività, semaforo e stato
 const voce = (s, utente, etichetta) => `
-  <a class="voce" href="/scadenze/${s.id}">
+  <a class="voce" href="/scadenze/${s.id}" target="_blank" data-scadenza="${s.id}" title="Clic: apri il pannello · Doppio clic: apri in una nuova scheda">
     <span class="quando">${formatta(s.data)}${s.ora ? `<small>ore ${esc(s.ora)}</small>` : ""}</span>
     <span class="cosa"><b>${esc(s.cliente)}${utente && s.referente_id === utente.id ? ` <span class="stella" title="Sei il referente">★</span>` : ""}</b><span>${esc(s.attivita)}</span></span>
     <span class="stato-voce">${mancano(s)}${etichetta || pillola(s.stato)}</span>
@@ -41,7 +41,8 @@ function paginaDashboard(utente, d) {
     titolo: "Dashboard",
     utente,
     attiva: "dash",
-    contenuto: `
+    script: ["nuova-scadenza.js", "pannelli.js"],
+    contenuto: `<div data-aggiornabile>
 <div class="testata-dash">
   <div><h1>${saluto()}, ${esc(nomeProprio)}</h1><p class="tenue">${formattaEsteso(oggi())} · ${RUOLI[utente.ruolo]}</p></div>
   <div class="contatori">${contatori}</div>
@@ -49,7 +50,7 @@ function paginaDashboard(utente, d) {
 ${d.daVerificare ? `<section class="pannello"><h2>Termini da verificare</h2>${elenco(d.daVerificare, utente, "", `<span class="etichetta attenzione">da verificare</span>`)}</section>` : ""}
 ${d.daAssegnare ? `<section class="pannello"><h2>Da assegnare</h2>${elenco(d.daAssegnare, utente, "Tutte le scadenze hanno qualcuno che se ne occupa.", `<span class="etichetta attenzione">Da assegnare</span>`)}</section>` : ""}
 <section class="pannello"><h2>Le mie scadenze</h2>${elenco(d.mie.filter((s) => s.tipo !== "udienza"), utente, "Nessuna scadenza assegnata a te.")}</section>
-<section class="pannello"><h2>Le mie udienze</h2>${elenco(d.udienze, utente, "Nessuna udienza in programma.")}</section>`,
+<section class="pannello"><h2>Le mie udienze</h2>${elenco(d.udienze, utente, "Nessuna udienza in programma.")}</section></div>`,
   });
 }
 

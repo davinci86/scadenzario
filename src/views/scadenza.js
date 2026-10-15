@@ -11,7 +11,9 @@ const { formatta, formattaMomento } = require("../dominio/date");
 const { puoModificare, puoLavorare, eAdmin } = require("../auth/regole");
 const { mancano, campione } = require("./scadenze-comuni");
 
-function paginaScadenza(utente, s, { atto, rinvio, storico, utenti, errore }) {
+// Il contenuto del dettaglio, senza la cornice della pagina.
+// Si usa sia nella pagina intera sia nel pannello laterale.
+function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore }) {
   const lavora = puoLavorare(s, utente);
   const modifica = puoModificare(utente);
   const url = `/scadenze/${s.id}`;
@@ -23,7 +25,7 @@ function paginaScadenza(utente, s, { atto, rinvio, storico, utenti, errore }) {
     errore && `<div class="errore" role="alert">${esc(errore)}</div>`,
     s.da_verificare && `<div class="avviso"><b>Termine da verificare.</b> L'atto non è nel catalogo: solo l'Admin può confermare il termine.
       ${eAdmin(utente) ? `<form method="post" action="${url}/verifica" class="in-linea"><button class="btn pri piccolo">Ho verificato: il termine è corretto</button></form>` : ""}</div>`,
-    rinvio && `<div class="avviso">Udienza rinviata: la nuova è la <a href="/scadenze/${rinvio.id}">N. ${rinvio.id} del ${formatta(rinvio.data)}</a>.</div>`,
+    rinvio && `<div class="avviso">Udienza rinviata: la nuova è la <a href="/scadenze/${rinvio.id}" data-scadenza="${rinvio.id}" target="_blank">N. ${rinvio.id} del ${formatta(rinvio.data)}</a>.</div>`,
   ].filter(Boolean).join("");
 
   // ── Stato ──
@@ -113,12 +115,7 @@ ${atto ? `
   </form>
 </section>` : "";
 
-  return layout({
-    titolo: `N. ${s.id} · ${s.cliente}`,
-    utente,
-    attiva: "scadenzario",
-    contenuto: `
-<p class="briciole"><a href="/scadenzario">← Scadenzario</a></p>
+  return `
 <div class="testata">
   <div class="tenue maiuscolo">${TIPI[s.tipo]} · N. ${s.id}</div>
   <h1>${esc(s.cliente)}</h1>
@@ -126,10 +123,20 @@ ${atto ? `
 </div>
 ${avvisi}
 <div class="griglia">
-  <div>${blocoStato}${blocoSquadra}${blocoNote}${blocoStorico}</div>
-  <aside>${dati}${strumenti}</aside>
-</div>`,
+  <div class="colonna-lavoro">${blocoStato}${blocoSquadra}${blocoNote}${blocoStorico}</div>
+  <div class="colonna-destra"><div class="blocco-dati">${dati}</div><div class="blocco-strumenti">${strumenti}</div></div>
+</div>`;
+}
+
+// La pagina intera (si apre con il doppio clic, sempre in una nuova scheda)
+function paginaScadenza(utente, s, extra) {
+  return layout({
+    titolo: `N. ${s.id} · ${s.cliente}`,
+    utente,
+    attiva: "scadenzario",
+    script: ["pannelli.js"],
+    contenuto: `<div data-dettaglio="${s.id}">${contenutoScadenza(utente, s, extra)}</div>`,
   });
 }
 
-module.exports = { paginaScadenza };
+module.exports = { paginaScadenza, contenutoScadenza };

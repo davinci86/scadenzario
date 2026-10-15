@@ -28,7 +28,7 @@ function leggiSessione(db, token) {
   const riga = db
     .prepare(
       `SELECT s.token_hash, s.ultima_attivita,
-              u.id, u.nome_utente, u.nome, u.titolo, u.ruolo, u.attivo
+              u.id, u.nome_utente, u.nome, u.titolo, u.ruolo, u.attivo, u.tema
          FROM sessioni s JOIN utenti u ON u.id = s.utente_id
         WHERE s.token_hash = ?`
     )
@@ -52,6 +52,7 @@ function leggiSessione(db, token) {
     nome: riga.nome,
     titolo: riga.titolo,
     ruolo: riga.ruolo,
+    tema: riga.tema === "scuro" ? "scuro" : "chiaro",
   };
 }
 

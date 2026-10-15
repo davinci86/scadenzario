@@ -22,7 +22,7 @@ function paginaScadenzario(utente, righe, filtri, utenti) {
   <select name="persona" aria-label="Persona">${opzione("", "Tutte le persone", filtri.persona)}${opzione("nessuno", "Da assegnare", filtri.persona)}${utenti.map((u) => opzione(u.id, u.nome, filtri.persona)).join("")}</select>
   <label class="spunta"><input type="checkbox" name="chiuse" value="1"${filtri.chiuse ? " checked" : ""}> Mostra anche le chiuse</label>
   <button class="btn" type="submit">Filtra</button>
-  ${puoModificare(utente) ? `<a class="btn pri" href="/scadenze/nuova">+ Nuova scadenza</a>` : ""}
+  ${puoModificare(utente) ? `<a class="btn pri" href="/scadenze/nuova" data-nuova>+ Nuova scadenza</a>` : ""}
 </form>`;
 
   const legenda = `<div class="legenda">${STATI.scadenza.concat([["Rinviata", "grigio"]])
@@ -30,9 +30,9 @@ function paginaScadenzario(utente, righe, filtri, utenti) {
 
   const corpo = righe.length
     ? righe.map((s) => `
-      <tr class="ev-${coloreDi(s.stato)}" data-href="/scadenze/${s.id}">
-        <td class="centro"><a href="/scadenze/${s.id}">${s.id}</a></td>
-        <td><a class="cliente" href="/scadenze/${s.id}">${esc(s.cliente)}</a></td>
+      <tr class="ev-${coloreDi(s.stato)}" data-scadenza="${s.id}" title="Clic: apri il pannello · Doppio clic: apri in una nuova scheda">
+        <td class="centro"><a href="/scadenze/${s.id}" target="_blank">${s.id}</a></td>
+        <td><a class="cliente" href="/scadenze/${s.id}" target="_blank">${esc(s.cliente)}</a></td>
         <td>${esc(s.attivita)}<span class="tipo">${TIPI[s.tipo].toLowerCase()}${s.ufficio ? " · " + esc(s.ufficio) : ""}${s.fascicolo ? " · fasc. " + esc(s.fascicolo) : ""}</span></td>
         <td>${s.data_evento ? formatta(s.data_evento) : `<span class="tenue">—</span>`}</td>
         <td>${formatta(s.data)}${s.correzione_manuale ? ` <span title="Data corretta a mano">✎</span>` : ""}${s.ora ? `<br>ore ${esc(s.ora)}` : ""}${s.da_verificare ? `<br><span class="etichetta attenzione">da verificare</span>` : ""}</td>
@@ -46,9 +46,9 @@ function paginaScadenzario(utente, righe, filtri, utenti) {
     titolo: "Scadenzario",
     utente,
     attiva: "scadenzario",
-    script: ["scadenzario.js"],
+    script: ["nuova-scadenza.js", "pannelli.js"],
     contenuto: `${strumenti}${legenda}
-<div class="foglio-contenitore">
+<div class="foglio-contenitore" data-aggiornabile>
   <div class="foglio">
     <div class="intestazione"><h2>SCADENZARIO</h2><div>aggiornato a ${formattaEsteso(oggi()).toLowerCase()}</div></div>
     <table class="word">

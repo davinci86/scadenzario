@@ -18,8 +18,13 @@ const { calcolaTermine, regolaAParole, spiegaCalcolo } = require("../dominio/ter
 const { TIPI, statiDi, primoStato, eChiuso } = require("../dominio/stati");
 const D = require("../dominio/date");
 const { paginaScadenzario } = require("../views/scadenzario");
-const { paginaNuova } = require("../views/nuova");
-const { paginaScadenza } = require("../views/scadenza");
+const { paginaNuova, moduloNuova } = require("../views/nuova");
+const { paginaScadenza, contenutoScadenza } = require("../views/scadenza");
+
+// Le richieste fatte dal pannello laterale e dalla finestra di inserimento
+// arrivano con l'intestazione "X-Parziale": a loro mandiamo solo il pezzo
+// di pagina che serve (o una risposta JSON), non la pagina intera.
+const parziale = (req) => req.get("X-Parziale") === "1";
 const { paginaErrore } = require("../views/errore");
 
 // ── Lettura del modulo "Nuova scadenza" ─────────────────────
@@ -120,6 +125,7 @@ function rotteScadenze(db) {
   // ── Nuova scadenza ──
   router.get("/scadenze/nuova", richiediAccesso, (req, res) => {
     if (!puoModificare(req.utente)) return vietato(req, res);
+    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db)));
     res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db)));
   });
 
@@ -127,13 +133,17 @@ function rotteScadenze(db) {
     if (!puoModificare(req.utente)) return vietato(req, res);
     const esito = leggiNuovaScadenza(db, req.body ?? {});
     if (esito.errori) {
-      return res.status(400).send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori));
+      const modulo = parziale(req)
+        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori)
+        : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori);
+      return res.status(400).send(modulo);
     }
     const { dati, squadra } = esito;
     const id = S.creaScadenza(db, dati, squadra, req.utente.id);
     S.aggiungiStorico(db, id, req.utente.id,
       `Scadenza inserita${dati.calcolo ? " · " + dati.calcolo : ""}${dati.da_verificare ? " · termine da verificare" : ""}`);
     registra(db, req.utente.id, "Creazione", `N. ${id} · ${dati.cliente} · ${dati.attivita}`);
+    if (parziale(req)) return res.json({ id });
     res.redirect(`/scadenze/${id}`);
   });
 
@@ -143,23 +153,28 @@ function rotteScadenze(db) {
     if (!s) return nonTrovata(req, res);
     const atto = s.atto_id ? trovaAtto(db, s.atto_id) : null;
     const rinvio = s.rinviata_a ? S.trovaScadenza(db, s.rinviata_a) : null;
-    res.send(paginaScadenza(req.utente, s, {
+    const extra = {
       atto, rinvio, storico: S.storicoScadenza(db, s.id), utenti: S.utentiAttivi(db),
       errore: String(req.query.errore ?? "").slice(0, 200),
-    }));
+    };
+    res.send(parziale(req) ? contenutoScadenza(req.utente, s, extra) : paginaScadenza(req.utente, s, extra));
   });
 
   // ── Le azioni sul dettaglio ──
   // Ogni azione: trova la scadenza, controlla il permesso, esegue,
   // e torna al dettaglio (con un eventuale messaggio d'errore).
+  // "esegui" può restituire: niente (tutto ok), un testo (errore),
+  // oppure { vai: numero } per passare a un'altra scadenza (es. il rinvio).
   function azione(percorso, permesso, esegui) {
     router.post(`/scadenze/:id/${percorso}`, richiediAccesso, (req, res) => {
       const s = S.trovaScadenza(db, Number(req.params.id));
       if (!s) return nonTrovata(req, res);
       if (!permesso(s, req.utente)) return vietato(req, res);
-      const errore = esegui(s, req.body ?? {}, req.utente, res);
-      if (res.headersSent) return;
-      res.redirect(`/scadenze/${s.id}` + (errore ? `?errore=${encodeURIComponent(errore)}` : ""));
+      const esito = esegui(s, req.body ?? {}, req.utente);
+      const errore = typeof esito === "string" ? esito : "";
+      const vai = esito?.vai ?? s.id;
+      if (parziale(req)) return res.status(errore ? 400 : 200).json({ id: vai, errore });
+      res.redirect(`/scadenze/${vai}` + (errore ? `?errore=${encodeURIComponent(errore)}` : ""));
     });
   }
   const traccia = (s, utente, testoStorico, azioneRegistro = "Modifica") => {
@@ -178,7 +193,7 @@ function rotteScadenze(db) {
   });
 
   // Rinvio di un'udienza: chiude questa e ne crea una nuova con la nuova data
-  azione("rinvio", puoLavorare, (s, corpo, utente, res) => {
+  azione("rinvio", puoLavorare, (s, corpo, utente) => {
     if (s.tipo !== "udienza" || eChiuso(s.stato)) return "Si possono rinviare solo le udienze aperte.";
     const data = String(corpo.data ?? ""), ora = String(corpo.ora ?? "");
     if (!D.eValida(data)) return "Indica la nuova data dell'udienza.";
@@ -190,7 +205,7 @@ function rotteScadenze(db) {
     S.aggiornaScadenza(db, s.id, { stato: "Rinviata", rinviata_a: nuovaId });
     traccia(s, utente, `Udienza rinviata al ${D.formatta(data)}${ora ? " ore " + ora : ""} (nuova udienza N. ${nuovaId})`, "Rinvio");
     S.aggiungiStorico(db, nuovaId, utente.id, `Creata dal rinvio dell'udienza N. ${s.id}`);
-    res.redirect(`/scadenze/${nuovaId}`);
+    return { vai: nuovaId };
   });
 
   // Coinvolgere una persona (o assegnare una scadenza che non ha nessuno)
