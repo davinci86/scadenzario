@@ -6,13 +6,14 @@
 // ─────────────────────────────────────────────────────────────
 const config = require("./config");
 const { apriDatabase } = require("./db/database");
-const { inserisciUtentiDiProva } = require("./db/seed");
+const { inserisciUtentiDiProva, inserisciDatiDiProva } = require("./db/seed");
 const { creaApp } = require("./app");
 
 const db = apriDatabase(config.percorsoDb);
 
-if (config.sviluppo && inserisciUtentiDiProva(db)) {
-  console.log("Creati gli utenti di prova (password per tutti: demo)");
+if (config.sviluppo) {
+  if (inserisciUtentiDiProva(db)) console.log("Creati gli utenti di prova (password per tutti: demo)");
+  if (inserisciDatiDiProva(db)) console.log("Creati il catalogo e le scadenze di prova");
 }
 
 creaApp(db).listen(config.porta, () => {

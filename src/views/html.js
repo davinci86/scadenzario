@@ -12,8 +12,8 @@ const RUOLI = { admin: "Admin", editor: "Editor", collab: "Collaboratore" };
 
 // La cornice comune a tutte le pagine: intestazione, menu, contenuto.
 // "attiva" indica quale voce del menu evidenziare.
-function layout({ titolo, utente, attiva = "", contenuto }) {
-  const voci = [["/", "Dashboard", "dash"]];
+function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
+  const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"]];
   if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti e registro", "utenti"]);
 
   const menu = utente
@@ -40,6 +40,7 @@ function layout({ titolo, utente, attiva = "", contenuto }) {
 <body>
 ${utente ? `<header class="top"><div class="top-in"><a class="marchio" href="/">Scadenzario</a>${menu}</div></header>` : ""}
 <main>${contenuto}</main>
+${script.map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
 </body>
 </html>`;
 }

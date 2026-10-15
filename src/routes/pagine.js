@@ -8,13 +8,24 @@ const { richiediAccesso, richiediRuolo } = require("../auth/permessi");
 const { ultimeAttivita } = require("../db/registro");
 const { paginaDashboard } = require("../views/dashboard");
 const { paginaUtenti } = require("../views/utenti");
+const { elencoScadenze } = require("../db/scadenze");
+const { puoModificare, eAdmin } = require("../auth/regole");
 
 function rottePagine(db) {
   const router = express.Router();
 
   // La dashboard: per chiunque abbia fatto l'accesso.
   router.get("/", richiediAccesso, (req, res) => {
-    res.send(paginaDashboard(req.utente));
+    const u = req.utente;
+    const mie = elencoScadenze(db, { persona: u.id });
+    res.send(paginaDashboard(u, {
+      mie,
+      udienze: mie.filter((s) => s.tipo === "udienza"),
+      // Solo per chi può assegnare
+      daAssegnare: puoModificare(u) ? elencoScadenze(db, { persona: "nessuno" }) : null,
+      // Solo per l'Admin
+      daVerificare: eAdmin(u) ? elencoScadenze(db, { daVerificare: true }) : null,
+    }));
   });
 
   // Utenti e registro: solo per l'Admin.

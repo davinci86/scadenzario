@@ -10,6 +10,7 @@ const express = require("express");
 const { caricaUtente } = require("./auth/permessi");
 const { rotteAccesso } = require("./routes/accesso");
 const { rottePagine } = require("./routes/pagine");
+const { rotteScadenze } = require("./routes/scadenze");
 const { paginaErrore } = require("./views/errore");
 
 function creaApp(db) {
@@ -41,6 +42,7 @@ function creaApp(db) {
   // 5. Le rotte
   app.use(rotteAccesso(db));
   app.use(rottePagine(db));
+  app.use(rotteScadenze(db));
 
   // 6. Nessuna rotta ha risposto: pagina inesistente
   app.use((req, res) => {

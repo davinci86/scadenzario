@@ -22,6 +22,9 @@ module.exports = {
   // …e per quanti minuti.
   minutiBlocco: 15,
 
+  // Per gli atti fuori catalogo ("Altro"): i termini proposti, in giorni.
+  terminiAltro: [10, 15, 20, 30, 60, 90],
+
   // In sviluppo (sul tuo Mac) il database si riempie da solo con gli
   // utenti di prova. Sul server dello studio questo NON succede.
   sviluppo: process.env.NODE_ENV !== "production",
