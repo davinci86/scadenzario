@@ -1,0 +1,88 @@
+/* ─────────────────────────────────────────────────────────────
+   STILE
+   Colori e caratteri sono "variabili" (--nome): si cambiano qui
+   una volta sola e cambiano in tutta l'app. Il secondo blocco
+   ridefinisce i colori per chi usa il tema scuro.
+   Niente caratteri da internet: l'app deve funzionare anche senza
+   connessione, quindi usiamo quelli già presenti sul computer.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --sfondo: #e6e8ec;
+  --carta: #ffffff;
+  --testo: #1b1d21;
+  --tenue: #5d6470;
+  --linea: #d3d7dd;
+  --accento: #8a1538;
+  --accento-testo: #ffffff;
+  --accento-tenue: #f6e7ec;
+  --errore: #b42318;
+  --errore-tenue: #fde8e6;
+  --avviso-tenue: #fff1d6;
+  --font-documento: "Times New Roman", Times, Georgia, serif;
+  --font-interfaccia: -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sfondo: #16181c;
+    --carta: #22252a;
+    --testo: #e8e9eb;
+    --tenue: #9ba1ab;
+    --linea: #3a3e45;
+    --accento: #e07494;
+    --accento-testo: #1a0b10;
+    --accento-tenue: #3a2129;
+    --errore: #ff7a6e;
+    --errore-tenue: #3d1f1c;
+    --avviso-tenue: #3a2d17;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--sfondo); color: var(--testo); font: 15px/1.45 var(--font-interfaccia); }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--accento); }
+:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+h1 { font-family: var(--font-documento); font-size: 30px; margin: 0 0 18px; }
+h2 { font-size: 13px; letter-spacing: .07em; text-transform: uppercase; color: var(--tenue); margin: 0 0 10px; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+.nota { color: var(--tenue); font-size: 14px; }
+
+/* Barra in alto */
+.top { background: var(--carta); border-bottom: 1px solid var(--linea); }
+.top-in { max-width: 1100px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.marchio { font-family: var(--font-documento); font-size: 21px; font-weight: 700; color: var(--testo); text-decoration: none; }
+.nav { display: flex; gap: 4px; }
+.nav a { padding: 7px 12px; border-radius: 6px; color: var(--tenue); font-weight: 600; text-decoration: none; }
+.nav a[aria-current="page"] { background: var(--accento-tenue); color: var(--accento); }
+.spazio { flex: 1; }
+.io { display: flex; gap: 10px; align-items: center; }
+.io form { margin: 0; }
+.chi { display: grid; line-height: 1.15; font-size: 14px; }
+.av { width: 30px; height: 30px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; border: 1px solid var(--linea); }
+.ruolo { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+.ruolo.admin { color: var(--accento); }
+
+/* Pulsanti e moduli */
+.btn { border: 1px solid var(--linea); background: var(--carta); padding: 9px 14px; border-radius: 7px; font-weight: 600; cursor: pointer; }
+.btn.pri { background: var(--accento); border-color: var(--accento); color: var(--accento-testo); }
+.link { background: none; border: 0; padding: 0; color: var(--accento); font-weight: 600; cursor: pointer; }
+.modulo { display: grid; gap: 6px; }
+.modulo label { font-size: 13px; font-weight: 700; color: var(--tenue); margin-top: 6px; }
+.modulo input { border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 9px 10px; }
+.modulo .btn { margin-top: 12px; }
+
+/* Login */
+.login { max-width: 420px; margin: 10vh auto 0; }
+.scheda { background: var(--carta); border: 1px solid var(--linea); border-radius: 12px; padding: 28px; display: grid; gap: 14px; }
+.scheda p { margin: 0; }
+.errore { background: var(--errore-tenue); color: var(--errore); border-radius: 7px; padding: 9px 12px; }
+.avviso { background: var(--avviso-tenue); border-radius: 7px; padding: 9px 12px; }
+
+/* Pannelli e tabelle */
+.pannello { background: var(--carta); border: 1px solid var(--linea); border-radius: 10px; padding: 18px; margin-bottom: 20px; overflow-x: auto; }
+.pannello p { margin: 0; }
+.semplice { border-collapse: collapse; width: 100%; font-size: 14px; }
+.semplice th, .semplice td { padding: 8px 10px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; }
+.semplice th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+.etichetta { font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 5px; background: var(--sfondo); color: var(--tenue); }

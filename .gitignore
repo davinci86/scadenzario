@@ -1,0 +1,9 @@
+# Librerie scaricate da npm: si ricreano con "npm install"
+node_modules/
+# Il database con i dati: non va MAI nel repository
+dati/
+*.db
+*.db-wal
+*.db-shm
+# File di sistema del Mac
+.DS_Store
