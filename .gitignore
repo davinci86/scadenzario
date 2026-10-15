@@ -7,3 +7,6 @@ dati/
 *.db-shm
 # File di sistema del Mac
 .DS_Store
+
+# Immagini e file che Claude invia in chat (non fanno parte del codice)
+Claude outputs/

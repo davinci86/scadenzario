@@ -276,3 +276,15 @@ body.senza-scorrimento { overflow: hidden; }
 .riga-persona:hover { color: var(--accento); }
 .riga-persona small { display: block; color: var(--tenue); font-size: 12px; }
 .voce .cosa .stella { color: var(--accento); font-size: inherit; }
+
+/* Le voci che chiedono un'azione: fondo colorato e pallino, come nel mockup */
+.elenco.evidenziato { gap: 8px; }
+.voce.evidenza { background: var(--accento-tenue); border-top: 0; border-radius: 8px; padding: 12px 14px;
+  grid-template-columns: 10px 120px minmax(0, 1fr) auto; }
+.voce.evidenza::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--accento); }
+.voce.evidenza:hover { filter: brightness(.97); background: var(--accento-tenue); }
+.voce.evidenza .etichetta.attenzione { background: var(--carta); }
+/* Le voci normali: riga più ariosa al passaggio del mouse */
+.voce:not(.evidenza):hover { background: var(--sfondo); border-radius: 6px; }
+/* I contatori in cima, colorati come nel mockup */
+.contatore b { font-size: 15px; }

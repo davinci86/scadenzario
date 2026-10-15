@@ -20,15 +20,17 @@ const attributiVoce = (s) =>
   `href="/scadenze/${s.id}" target="_blank" data-scadenza="${s.id}" title="Clic: apri il pannello · Doppio clic: apri in una nuova scheda"`;
 
 // Una riga dell'elenco: data | cliente e attività | semaforo e stato
-const voce = (s, utente, etichetta) => `
-  <a class="voce" ${attributiVoce(s)}>
+const voce = (s, utente, etichetta, evidenza) => `
+  <a class="voce${evidenza ? " evidenza" : ""}" ${attributiVoce(s)}>
     <span class="quando">${formatta(s.data)}${s.ora ? `<small>ore ${esc(s.ora)}</small>` : ""}</span>
     <span class="cosa"><b>${esc(s.cliente)}${utente && s.referente_id === utente.id ? ` <span class="stella" title="Sei il referente">★</span>` : ""}</b><span>${esc(s.attivita)}</span></span>
     <span class="stato-voce">${mancano(s)}${etichetta || pillola(s.stato)}</span>
   </a>`;
 
-const elenco = (righe, utente, vuoto, etichetta) =>
-  righe.length ? `<div class="elenco">${righe.map((s) => voce(s, utente, etichetta)).join("")}</div>`
+// "evidenza": le cose che chiedono un'azione (da verificare, da assegnare)
+// stanno su un fondo colorato, come le notifiche nel mockup.
+const elenco = (righe, utente, vuoto, etichetta, evidenza = false) =>
+  righe.length ? `<div class="elenco${evidenza ? " evidenziato" : ""}">${righe.map((s) => voce(s, utente, etichetta, evidenza)).join("")}</div>`
                : `<p class="nota">${vuoto}</p>`;
 
 const pannello = (titolo, contenuto) => `<section class="pannello"><h2>${titolo}</h2>${contenuto}</section>`;
@@ -64,8 +66,8 @@ function paginaDashboard(utente, d) {
 
   // Colonna sinistra: le mie cose
   const sinistra = [
-    d.daVerificare?.length ? pannello("Termini da verificare", elenco(d.daVerificare, utente, "", `<span class="etichetta attenzione">da verificare</span>`)) : "",
-    d.daAssegnare ? pannello("Da assegnare", elenco(d.daAssegnare, utente, "Tutte le scadenze hanno qualcuno che se ne occupa.", `<span class="etichetta attenzione">Da assegnare</span>`)) : "",
+    d.daVerificare?.length ? pannello("Termini da verificare", elenco(d.daVerificare, utente, "", `<span class="etichetta attenzione">da verificare</span>`, true)) : "",
+    d.daAssegnare ? pannello("Da assegnare", elenco(d.daAssegnare, utente, "Tutte le scadenze hanno qualcuno che se ne occupa.", `<span class="etichetta attenzione">Da assegnare</span>`, true)) : "",
     pannello("Le mie scadenze", elenco(d.mie.filter((s) => s.tipo !== "udienza"), utente, "Nessuna scadenza assegnata a te.")),
     pannello("Le mie udienze", elenco(d.udienze, utente, "Nessuna udienza in programma.")),
   ].join("");
