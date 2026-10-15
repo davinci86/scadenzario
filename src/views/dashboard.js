@@ -58,7 +58,7 @@ function paginaDashboard(utente, d) {
   const contatori = [
     `<span class="contatore${scadute ? " rosso" : ""}"><b>${scadute}</b> scadute</span>`,
     `<span class="contatore${settimana ? " ambra" : ""}"><b>${settimana}</b> entro 7 giorni</span>`,
-    `<span class="contatore"><b>${d.udienze.length}</b> udienze in programma</span>`,
+    `<span class="contatore"><b>${d.udienze.filter((s) => giorniDaOggi(s.data) <= 7).length}</b> udienze in settimana</span>`,
     d.daAssegnare ? `<span class="contatore${d.daAssegnare.length ? " ambra" : ""}"><b>${d.daAssegnare.length}</b> da assegnare</span>` : "",
   ].join("");
 
