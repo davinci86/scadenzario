@@ -333,3 +333,17 @@ body.senza-scorrimento { overflow: hidden; }
 
 .semplice .orario { font-variant-numeric: tabular-nums; font-weight: 600; }
 .semplice tr.assente td { color: var(--tenue); }
+
+/* Menu sul proprio nome: profilo, blocco, tema, esci */
+.menu-utente-contenitore { position: relative; }
+button.io-link { background: none; border: 1px solid transparent; border-radius: 8px; padding: 3px 8px 3px 4px; cursor: pointer; text-align: left; }
+button.io-link:hover, button.io-link[aria-expanded="true"] { border-color: var(--linea); background: var(--sfondo); }
+.io-link .freccia { color: var(--tenue); font-size: 12px; }
+.menu-utente { position: absolute; right: 0; top: calc(100% + 8px); min-width: 250px; background: var(--carta); border: 1px solid var(--linea);
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 40; padding: 6px; display: grid; }
+.menu-utente form { margin: 0; }
+.menu-utente a, .menu-utente button { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%;
+  padding: 9px 10px; border-radius: 6px; border: 0; background: none; color: var(--testo); text-decoration: none; font-size: 14px; cursor: pointer; text-align: left; }
+.menu-utente a:hover, .menu-utente button:hover { background: var(--sfondo); }
+.menu-utente .esci { color: var(--accento); font-weight: 600; border-top: 1px solid var(--linea); border-radius: 0 0 6px 6px; margin-top: 4px; }
+kbd { font-family: var(--font-interfaccia); font-size: 11px; color: var(--tenue); border: 1px solid var(--linea); border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; background: var(--sfondo); }

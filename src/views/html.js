@@ -28,11 +28,19 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
           <span class="numero" hidden></span>
         </button>
-        <form method="post" action="/blocca" data-blocca-ora><button class="interruttore" type="submit" title="Blocca subito lo schermo (per la privacy, quando ti allontani)">🔒 Blocca</button></form>
-        <a class="io-link" href="/profilo" title="Il mio profilo"><span class="av">${esc(iniziali(utente.nome))}</span>
-        <span class="chi"><b>${esc(utente.nome)}</b><span class="ruolo ${esc(utente.ruolo)}">${RUOLI[utente.ruolo]}${utente.titolare ? " · titolare" : ""}</span></span></a>
-        <form method="post" action="/preferenze/tema"><button class="interruttore" type="submit" title="Cambia tra tema chiaro e scuro">${utente.tema === "scuro" ? "☀ Chiaro" : "☾ Scuro"}</button></form>
-        <form method="post" action="/logout"><button class="link" type="submit">Esci</button></form>
+        <div class="menu-utente-contenitore">
+          <button class="io-link" type="button" data-menu-utente aria-haspopup="menu" aria-expanded="false">
+            <span class="av">${esc(iniziali(utente.nome))}</span>
+            <span class="chi"><b>${esc(utente.nome)}</b><span class="ruolo ${esc(utente.ruolo)}">${RUOLI[utente.ruolo]}${utente.titolare ? " · titolare" : ""}</span></span>
+            <span class="freccia" aria-hidden="true">▾</span>
+          </button>
+          <div class="menu-utente" role="menu" hidden>
+            <a role="menuitem" href="/profilo">Il mio profilo</a>
+            <form method="post" action="/blocca" data-blocca-ora><button role="menuitem" type="submit">🔒 Blocca lo schermo <kbd>Ctrl+Alt+L</kbd></button></form>
+            <form method="post" action="/preferenze/tema"><button role="menuitem" type="submit">${utente.tema === "scuro" ? "☀ Tema chiaro" : "☾ Tema scuro"}</button></form>
+            <form method="post" action="/logout"><button role="menuitem" type="submit" class="esci">Esci</button></form>
+          </div>
+        </div>
       </div>`
     : "";
 

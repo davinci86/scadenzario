@@ -23,8 +23,11 @@ Prove da fare:
 2. Apri una seconda finestra del browser come **a.ferrara**, cambia lo stato della scadenza
    "Kone Ibrahim". Entro 30 secondi la campanella di De Luca si aggiorna e **suona una volta**.
    (Il browser fa suonare solo dopo che hai cliccato almeno una volta nella pagina.)
-3. Premi **🔒 Blocca**: lo schermo si copre. Prova una password sbagliata, poi quella giusta.
-4. Nel **profilo** (clic sul tuo nome) metti il blocco a **1 minuto**, poi non toccare niente:
+3. Clicca sul tuo **nome** in alto a destra: si apre un menu con *Il mio profilo*,
+   *Blocca lo schermo*, *Tema chiaro/scuro* ed *Esci*. Scegli **🔒 Blocca lo schermo**
+   (oppure premi **Ctrl+Alt+L**, sul Mac Ctrl+⌥+L): lo schermo si copre.
+   Prova una password sbagliata, poi quella giusta.
+4. Nel **profilo** (menu sul nome → Il mio profilo) metti il blocco a **1 minuto**, poi non toccare niente:
    dopo un minuto lo schermo si blocca da solo.
 5. **Ingressi** (lo vedono l'Admin e i titolari, cioè De Luca nei dati di prova): chi è entrato
    oggi e quando. Premi **Esci** e rientra: l'uscita compare nel registro.
@@ -110,5 +113,12 @@ su quali dati si registrano, chi li vede e per quanto tempo si conservano
 2. In `public/js/campanella.js` cerca `[[880, 0], [1320, 0.16]]`: sono le due note del suono
    (frequenza in Hz e momento di partenza). Prova a cambiarle.
 3. In `src/config.js` cambia `oraFineSessione` da `2` a un'altra ora.
+
+### Perché Ctrl+Alt+L e non Ctrl+Q
+
+Ctrl+Q (e ⌘Q sul Mac) in molti browser chiude tutto il programma: un dito scivolato e
+si perde il lavoro. Ctrl+Alt+L non lo usa nessun browser. La scorciatoia è in
+`public/js/blocco.js` (cerca `KeyL`). Su Windows c'è anche **Win+L**, che blocca
+l'intero computer: va benissimo, ed è ancora più sicura.
 
 **Prossima tappa:** segnalazioni ai colleghi e movimenti dei fascicoli.

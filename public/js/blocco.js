@@ -77,6 +77,30 @@
     mostraBlocco(true);
   });
 
+  // Scorciatoia da tastiera: Ctrl+Alt+L (su Mac Ctrl+⌥+L).
+  // Usiamo il tasto "fisico" (e.code), così funziona con qualunque tastiera.
+  document.addEventListener("keydown", (evento) => {
+    if (evento.ctrlKey && evento.altKey && evento.code === "KeyL") {
+      evento.preventDefault();
+      mostraBlocco(true);
+    }
+  });
+
+  // Il menu che si apre cliccando sul proprio nome
+  const pulsanteMenu = document.querySelector("[data-menu-utente]");
+  const menu = document.querySelector(".menu-utente");
+  if (pulsanteMenu && menu) {
+    const chiudiMenu = () => { menu.hidden = true; pulsanteMenu.setAttribute("aria-expanded", "false"); };
+    pulsanteMenu.addEventListener("click", (evento) => {
+      evento.stopPropagation();
+      menu.hidden = !menu.hidden;
+      pulsanteMenu.setAttribute("aria-expanded", String(!menu.hidden));
+    });
+    document.addEventListener("click", (evento) => { if (!evento.target.closest(".menu-utente")) chiudiMenu(); });
+    document.addEventListener("keydown", (evento) => { if (evento.key === "Escape") chiudiMenu(); });
+    menu.addEventListener("submit", chiudiMenu);
+  }
+
   // Il conto alla rovescia riparte a ogni movimento
   function riavvia() {
     clearTimeout(timer);
