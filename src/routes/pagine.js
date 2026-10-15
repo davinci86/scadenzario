@@ -8,7 +8,8 @@ const { richiediAccesso, richiediRuolo } = require("../auth/permessi");
 const { ultimeAttivita } = require("../db/registro");
 const { paginaDashboard } = require("../views/dashboard");
 const { paginaUtenti } = require("../views/utenti");
-const { elencoScadenze } = require("../db/scadenze");
+const { elencoScadenze, utentiAttivi } = require("../db/scadenze");
+const { giorniDaOggi } = require("../dominio/date");
 const { puoModificare, eAdmin } = require("../auth/regole");
 
 function rottePagine(db) {
@@ -18,14 +19,23 @@ function rottePagine(db) {
   router.get("/", richiediAccesso, (req, res) => {
     const u = req.utente;
     const mie = elencoScadenze(db, { persona: u.id });
-    res.send(paginaDashboard(u, {
+    const dati = {
       mie,
       udienze: mie.filter((s) => s.tipo === "udienza"),
-      // Solo per chi può assegnare
-      daAssegnare: puoModificare(u) ? elencoScadenze(db, { persona: "nessuno" }) : null,
       // Solo per l'Admin
       daVerificare: eAdmin(u) ? elencoScadenze(db, { daVerificare: true }) : null,
-    }));
+    };
+    // Solo per chi può assegnare: scadenze senza squadra, quadro dello studio, chi ha cosa
+    if (puoModificare(u)) {
+      const aperte = elencoScadenze(db, {});
+      dati.daAssegnare = aperte.filter((s) => s.squadra.length === 0);
+      dati.studio = { aperte: aperte.length, scadute: aperte.filter((s) => giorniDaOggi(s.data) < 0) };
+      dati.chiHaCosa = utentiAttivi(db).map((persona) => ({
+        persona,
+        scadenze: aperte.filter((s) => s.squadra.some((p) => p.id === persona.id)),
+      }));
+    }
+    res.send(paginaDashboard(u, dati));
   });
 
   // Tema chiaro/scuro: una preferenza personale, salvata nel profilo.

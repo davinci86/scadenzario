@@ -260,3 +260,19 @@ body.senza-scorrimento { overflow: hidden; }
 }
 
 .interruttore { background: none; border: 1px solid var(--linea); border-radius: 999px; padding: 3px 10px; font-size: 13px; color: var(--tenue); cursor: pointer; }
+
+/* ── Dashboard a due colonne, come nel mockup ──────────────── */
+.griglia-dash { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .griglia-dash { grid-template-columns: minmax(0, 1fr); } }
+.griglia-dash .pannello { margin-bottom: 20px; }
+.spazio-sopra { margin-top: 10px !important; }
+.contatore.piccolo { padding: 1px 8px; font-size: 12px; }
+.schede-persone { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.scheda-persona { border: 1px solid var(--linea); border-radius: 8px; padding: 12px; display: grid; gap: 6px; align-content: start; }
+.scheda-testa { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.scheda-testa b { flex: 1; min-width: 0; font-size: 14px; }
+.riga-persona { display: flex; gap: 8px; justify-content: space-between; align-items: center; border-top: 1px solid var(--linea);
+  padding-top: 6px; font-size: 14px; color: inherit; text-decoration: none; }
+.riga-persona:hover { color: var(--accento); }
+.riga-persona small { display: block; color: var(--tenue); font-size: 12px; }
+.voce .cosa .stella { color: var(--accento); font-size: inherit; }
