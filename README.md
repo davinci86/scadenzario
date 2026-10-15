@@ -8,7 +8,7 @@ App web che gira nella rete interna dello studio.
 Dal Terminale, dentro questa cartella:
 
 ```
-npm install   # solo la prima volta: scarica le librerie
+npm install   # la prima volta, e quando una tappa aggiunge librerie
 npm start     # avvia l'app
 ```
 
@@ -33,4 +33,10 @@ npm test
 
 ## Guide
 
-Ogni tappa ha la sua guida: `GUIDA-TAPPA-1.md`, `GUIDA-TAPPA-2.md`, …
+Ogni tappa ha la sua guida: `GUIDA-TAPPA-1.md`, `GUIDA-TAPPA-2.md`, `GUIDA-TAPPA-3.md`, …
+
+## Email (sul server dello studio)
+
+I promemoria via email partono solo se è configurato un server di posta, con le
+variabili d'ambiente `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+Finché non c'è, le email restano in coda (visibili all'Admin in "Utenti e registro").

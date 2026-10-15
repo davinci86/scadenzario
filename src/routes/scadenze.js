@@ -12,6 +12,7 @@ const config = require("../config");
 const { richiediAccesso } = require("../auth/permessi");
 const { puoModificare, puoLavorare, eAdmin } = require("../auth/regole");
 const { registra } = require("../db/registro");
+const { notifica } = require("../db/notifiche");
 const S = require("../db/scadenze");
 const { attiAttivi, trovaAtto, aRegola, chiusure } = require("../db/atti");
 const { calcolaTermine, regolaAParole, spiegaCalcolo } = require("../dominio/termini");
@@ -142,6 +143,16 @@ function rotteScadenze(db) {
     const id = S.creaScadenza(db, dati, squadra, req.utente.id);
     S.aggiungiStorico(db, id, req.utente.id,
       `Scadenza inserita${dati.calcolo ? " · " + dati.calcolo : ""}${dati.da_verificare ? " · termine da verificare" : ""}`);
+    // Notifiche: a chi è stato assegnato, e all'Admin se il termine va verificato
+    for (const persona of squadra) {
+      notifica(db, { utenti: [persona], scadenzaId: id, autore: req.utente.id,
+        testo: `${req.utente.nome} ti ha assegnato ${dati.tipo === "udienza" ? "un'udienza" : "una scadenza"}${persona === dati.referente_id ? " come referente" : ""}` });
+    }
+    if (dati.da_verificare) {
+      const admin = db.prepare("SELECT id FROM utenti WHERE ruolo = 'admin' AND attivo = 1").all().map((u) => u.id);
+      notifica(db, { utenti: admin, scadenzaId: id, autore: req.utente.id,
+        testo: `Termine da verificare: atto fuori catalogo · ${dati.calcolo}, scadenza ${D.formatta(dati.data)}` });
+    }
     registra(db, req.utente.id, "Creazione", `N. ${id} · ${dati.cliente} · ${dati.attivita}`);
     if (parziale(req)) return res.json({ id });
     res.redirect(`/scadenze/${id}`);
@@ -182,6 +193,9 @@ function rotteScadenze(db) {
     registra(db, utente.id, azioneRegistro, `N. ${s.id} · ${s.cliente} · ${testoStorico}`);
   };
   const soloEditor = (s, u) => puoModificare(u);
+  // Avvisa la squadra (tranne chi ha fatto l'azione); se non c'è squadra, nessuno.
+  const avvisaSquadra = (s, utente, testo) =>
+    notifica(db, { utenti: s.squadra.map((p) => p.id), scadenzaId: s.id, autore: utente.id, testo });
 
   // Cambio di stato
   azione("stato", puoLavorare, (s, corpo, utente) => {
@@ -190,6 +204,7 @@ function rotteScadenze(db) {
     if (nuovo === s.stato) return;
     S.aggiornaScadenza(db, s.id, { stato: nuovo });
     traccia(s, utente, `Stato: ${s.stato} → ${nuovo}`, "Stato");
+    avvisaSquadra(s, utente, `${utente.nome} ha portato lo stato a «${nuovo}»`);
   });
 
   // Rinvio di un'udienza: chiude questa e ne crea una nuova con la nuova data
@@ -205,6 +220,8 @@ function rotteScadenze(db) {
     S.aggiornaScadenza(db, s.id, { stato: "Rinviata", rinviata_a: nuovaId });
     traccia(s, utente, `Udienza rinviata al ${D.formatta(data)}${ora ? " ore " + ora : ""} (nuova udienza N. ${nuovaId})`, "Rinvio");
     S.aggiungiStorico(db, nuovaId, utente.id, `Creata dal rinvio dell'udienza N. ${s.id}`);
+    notifica(db, { utenti: s.squadra.map((p) => p.id), scadenzaId: nuovaId, autore: utente.id,
+      testo: `Udienza rinviata al ${D.formatta(data)}${ora ? " ore " + ora : ""}` });
     return { vai: nuovaId };
   });
 
@@ -217,6 +234,8 @@ function rotteScadenze(db) {
     const prima = s.squadra.length === 0;
     if (prima || !s.referente_id) S.aggiornaScadenza(db, s.id, { referente_id: persona.id });
     traccia(s, utente, prima ? `Assegnata a ${persona.nome} (referente)` : `Coinvolto: ${persona.nome}`, prima ? "Assegnazione" : "Modifica");
+    notifica(db, { utenti: [persona.id], scadenzaId: s.id, autore: utente.id,
+      testo: prima ? `${utente.nome} ti ha assegnato questa attività come referente` : `${utente.nome} ti ha coinvolto` });
   });
 
   // Togliere una persona (solo Admin ed Editor)
@@ -237,6 +256,7 @@ function rotteScadenze(db) {
     if (!persona) return "Il referente deve far parte della squadra.";
     S.aggiornaScadenza(db, s.id, { referente_id: persona.id });
     traccia(s, utente, `Referente: ${persona.nome}`);
+    notifica(db, { utenti: [persona.id], scadenzaId: s.id, autore: utente.id, testo: `${utente.nome} ti ha nominato referente` });
   });
 
   // Nota libera nello storico
@@ -244,6 +264,7 @@ function rotteScadenze(db) {
     const nota = String(corpo.nota ?? "").trim().slice(0, 2000);
     if (!nota) return "La nota è vuota.";
     traccia(s, utente, `Nota: ${nota}`, "Nota");
+    avvisaSquadra(s, utente, `Nuova nota di ${utente.nome}: ${nota.length > 80 ? nota.slice(0, 80) + "…" : nota}`);
   });
 
   // Correzione manuale della data: sempre con il motivo
@@ -256,6 +277,7 @@ function rotteScadenze(db) {
     if (data === s.data && ora === s.ora) return "La data è uguale a quella attuale.";
     S.aggiornaScadenza(db, s.id, { data, ora, correzione_manuale: s.tipo === "udienza" ? null : motivo });
     traccia(s, utente, `Data corretta a mano da ${D.formatta(s.data)} a ${D.formatta(data)}. Motivo: ${motivo}`, "Correzione");
+    avvisaSquadra(s, utente, `Data cambiata: ora ${D.formatta(data)}${ora ? " ore " + ora : ""} (prima ${D.formatta(s.data)})`);
   });
 
   // Ricalcolo da una nuova data di decorrenza, con la regola del catalogo
@@ -268,6 +290,7 @@ function rotteScadenze(db) {
     const { data } = calcolaTermine(dataEvento, regola, chiusure(db));
     S.aggiornaScadenza(db, s.id, { data_evento: dataEvento, data, calcolo: regolaAParole(regola), correzione_manuale: null });
     traccia(s, utente, `Ricalcolo dalla decorrenza del ${D.formatta(dataEvento)}: scadenza ${D.formatta(data)} (prima ${D.formatta(s.data)})`);
+    if (data !== s.data) avvisaSquadra(s, utente, `Termine ricalcolato: ora scade ${D.formatta(data)} (prima ${D.formatta(s.data)})`);
   });
 
   // Conferma del termine di un atto fuori catalogo: solo l'Admin

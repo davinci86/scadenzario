@@ -16,6 +16,23 @@ if (config.sviluppo) {
   if (inserisciDatiDiProva(db)) console.log("Creati il catalogo e le scadenze di prova");
 }
 
+// ── Lavori programmati: promemoria ed email ──
+// Ogni pochi minuti il server controlla se ci sono promemoria da creare
+// e spedisce le email in coda (se il server di posta è configurato).
+const { generaPromemoria } = require("./servizi/promemoria");
+const { inviaEmailInCoda } = require("./servizi/email");
+async function lavoriProgrammati() {
+  try {
+    const nuovi = generaPromemoria(db);
+    if (nuovi) console.log(`Promemoria creati: ${nuovi}`);
+    await inviaEmailInCoda(db);
+  } catch (errore) {
+    console.error("Errore nei lavori programmati:", errore.message);
+  }
+}
+lavoriProgrammati();
+setInterval(lavoriProgrammati, config.minutiControlloPromemoria * 60_000);
+
 creaApp(db).listen(config.porta, () => {
   console.log(`Scadenzario avviato: apri http://localhost:${config.porta}`);
   console.log("Per fermarlo premi Ctrl + C");

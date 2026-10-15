@@ -24,6 +24,9 @@ function inserisciUtentiDiProva(db, password = "demo") {
   for (const u of UTENTI_DI_PROVA) {
     inserisci.run(u.nomeUtente, u.nome, u.titolo, u.ruolo, creaHash(password));
   }
+  // Dalla Tappa 3: email di prova (dominio inesistente) e un titolare
+  db.prepare("UPDATE utenti SET email = nome_utente || '@studio.example'").run();
+  db.prepare("UPDATE utenti SET titolare = 1 WHERE nome_utente = 'm.deluca'").run();
   return true;
 }
 

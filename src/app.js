@@ -11,6 +11,7 @@ const { caricaUtente } = require("./auth/permessi");
 const { rotteAccesso } = require("./routes/accesso");
 const { rottePagine } = require("./routes/pagine");
 const { rotteScadenze } = require("./routes/scadenze");
+const { rotteNotifiche } = require("./routes/notifiche");
 const { paginaErrore } = require("./views/errore");
 
 function creaApp(db) {
@@ -43,6 +44,7 @@ function creaApp(db) {
   app.use(rotteAccesso(db));
   app.use(rottePagine(db));
   app.use(rotteScadenze(db));
+  app.use(rotteNotifiche(db));
 
   // 6. Nessuna rotta ha risposto: pagina inesistente
   app.use((req, res) => {

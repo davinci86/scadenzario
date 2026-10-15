@@ -9,7 +9,10 @@
 const express = require("express");
 const config = require("../config");
 const { verificaPassword, HASH_FINTO } = require("../auth/password");
-const { creaSessione, chiudiSessione, leggiCookie, impostaCookie, cancellaCookie } = require("../auth/sessioni");
+const { creaSessione, chiudiSessione, leggiCookie, impostaCookie, cancellaCookie,
+  bloccaSessione, sbloccaSessione, sbloccoFallito } = require("../auth/sessioni");
+const { registraEntrata, registraUscita } = require("../db/presenze");
+const { paginaBloccata } = require("../views/blocco");
 const { registra } = require("../db/registro");
 const { paginaLogin } = require("../views/login");
 
@@ -66,15 +69,52 @@ function rotteAccesso(db) {
     // Tutto ok: azzeriamo i tentativi, creiamo la sessione, e via alla dashboard.
     db.prepare("UPDATE utenti SET tentativi_falliti = 0, bloccato_fino = NULL WHERE id = ?").run(utente.id);
     impostaCookie(res, creaSessione(db, utente.id));
+    registraEntrata(db, utente.id);
     registra(db, utente.id, "Accesso");
     res.redirect("/");
   });
 
   router.post("/logout", (req, res) => {
-    if (req.utente) registra(db, req.utente.id, "Uscita");
+    if (req.utente) {
+      registraUscita(db, req.utente.id);
+      registra(db, req.utente.id, "Uscita");
+    }
     chiudiSessione(db, leggiCookie(req));
     cancellaCookie(res);
     res.redirect("/login");
+  });
+
+  // ── Blocco dello schermo ──
+  // "Blocca ora" (o il timer di inattività nel browser): la sessione resta,
+  // ma finché non si reinserisce la password il server non risponde a nulla.
+  router.post("/blocca", (req, res) => {
+    if (!req.utente) return res.status(401).json({ uscito: true });
+    bloccaSessione(db, leggiCookie(req));
+    if (req.get("X-Parziale") === "1" || req.get("X-Automatico") === "1") return res.json({ bloccata: true });
+    res.status(423).send(paginaBloccata(req.utente, "/"));
+  });
+
+  router.post("/sblocca", (req, res) => {
+    if (!req.utente) return res.redirect("/login?scaduta=1");
+    const json = req.get("X-Parziale") === "1";
+    const torna = String(req.body?.torna || "/");
+    const destinazione = torna.startsWith("/") && !torna.startsWith("//") ? torna : "/"; // solo pagine nostre
+    const utente = db.prepare("SELECT password_hash FROM utenti WHERE id = ?").get(req.utente.id);
+
+    if (verificaPassword(String(req.body?.password || ""), utente.password_hash)) {
+      sbloccaSessione(db, leggiCookie(req));
+      return json ? res.json({ ok: true }) : res.redirect(destinazione);
+    }
+    // Dopo 5 tentativi sbagliati la sessione si chiude: si deve rifare il login
+    const tentativi = sbloccoFallito(db, leggiCookie(req));
+    registra(db, req.utente.id, "Sblocco fallito", `Tentativo ${tentativi}`);
+    if (tentativi >= config.tentativiMassimi) {
+      chiudiSessione(db, leggiCookie(req));
+      cancellaCookie(res);
+      return json ? res.status(401).json({ uscito: true }) : res.redirect("/login");
+    }
+    const errore = "Password non corretta.";
+    return json ? res.status(400).json({ errore }) : res.status(400).send(paginaBloccata(req.utente, destinazione, errore));
   });
 
   return router;

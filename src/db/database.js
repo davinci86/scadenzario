@@ -28,10 +28,18 @@ function apriDatabase(percorso) {
 // (Così un database già esistente si aggiorna da solo, senza perdere dati.)
 function aggiornaTabelle(db) {
   const colonne = (tabella) => db.prepare(`PRAGMA table_info(${tabella})`).all().map((c) => c.name);
-  if (!colonne("utenti").includes("tema")) {
-    // La preferenza personale chiaro/scuro
-    db.exec("ALTER TABLE utenti ADD COLUMN tema TEXT NOT NULL DEFAULT 'chiaro'");
-  }
+  const aggiungi = (tabella, colonna, definizione) => {
+    if (!colonne(tabella).includes(colonna)) db.exec(`ALTER TABLE ${tabella} ADD COLUMN ${colonna} ${definizione}`);
+  };
+  // La preferenza personale chiaro/scuro
+  aggiungi("utenti", "tema", "TEXT NOT NULL DEFAULT 'chiaro'");
+  // Dalla Tappa 3: preferenze personali e qualifica di titolare
+  aggiungi("utenti", "minuti_blocco", "INTEGER NOT NULL DEFAULT 10");
+  aggiungi("utenti", "email", "TEXT NOT NULL DEFAULT ''");
+  aggiungi("utenti", "titolare", "INTEGER NOT NULL DEFAULT 0");
+  // Dalla Tappa 3: blocco dello schermo
+  aggiungi("sessioni", "bloccata", "INTEGER NOT NULL DEFAULT 0");
+  aggiungi("sessioni", "tentativi_sblocco", "INTEGER NOT NULL DEFAULT 0");
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,
@@ -120,6 +128,45 @@ function creaTabelle(db) {
       quando      INTEGER NOT NULL,
       utente_id   INTEGER REFERENCES utenti(id),
       testo       TEXT NOT NULL
+    );
+
+    -- ── Dalla Tappa 3 ──────────────────────────────────────
+
+    -- Le notifiche di ognuno: restano "da leggere" finché non si preme Letto
+    CREATE TABLE IF NOT EXISTS notifiche (
+      id          INTEGER PRIMARY KEY,
+      utente_id   INTEGER NOT NULL REFERENCES utenti(id),
+      scadenza_id INTEGER REFERENCES scadenze(id),
+      tipo        TEXT NOT NULL DEFAULT 'evento',  -- 'evento' o 'promemoria'
+      testo       TEXT NOT NULL,
+      chiave      TEXT,      -- per non creare due volte lo stesso promemoria
+      creata      INTEGER NOT NULL,
+      letta       INTEGER,   -- quando è stata letta (vuoto = da leggere)
+      avvisata    INTEGER NOT NULL DEFAULT 0,  -- 1 = il suono è già stato emesso
+      UNIQUE (utente_id, chiave)
+    );
+
+    -- Le email in uscita (promemoria anonimi, senza nomi di clienti)
+    CREATE TABLE IF NOT EXISTS email (
+      id           INTEGER PRIMARY KEY,
+      utente_id    INTEGER NOT NULL REFERENCES utenti(id),
+      destinatario TEXT NOT NULL,
+      oggetto      TEXT NOT NULL,
+      testo        TEXT NOT NULL,
+      creata       INTEGER NOT NULL,
+      inviata      INTEGER,   -- quando è partita (vuoto = in coda)
+      errore       TEXT
+    );
+
+    -- Ingressi e uscite: una riga per persona per giorno.
+    -- Solo orari, nessun calcolo di ore.
+    CREATE TABLE IF NOT EXISTS presenze (
+      utente_id       INTEGER NOT NULL REFERENCES utenti(id),
+      data            TEXT NOT NULL,     -- AAAA-MM-GG
+      entrata         INTEGER NOT NULL,  -- primo accesso del giorno
+      uscita          INTEGER,           -- ultima uscita con "Esci" (vuoto = non registrata)
+      ultima_attivita INTEGER NOT NULL,
+      PRIMARY KEY (utente_id, data)
     );
 
     CREATE TABLE IF NOT EXISTS registro (

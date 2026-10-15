@@ -16,4 +16,7 @@ const inSquadra = (scadenza, utente) => scadenza.squadra.some((p) => p.id === ut
 // Admin ed Editor sempre; gli altri solo dove sono coinvolti.
 const puoLavorare = (scadenza, utente) => puoModificare(utente) || inSquadra(scadenza, utente);
 
-module.exports = { puoModificare, eAdmin, inSquadra, puoLavorare };
+// Il registro degli ingressi: l'Admin e chi ha la qualifica di titolare.
+const vedeIngressi = (utente) => utente.ruolo === "admin" || !!utente.titolare;
+
+module.exports = { puoModificare, eAdmin, inSquadra, puoLavorare, vedeIngressi };

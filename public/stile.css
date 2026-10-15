@@ -288,3 +288,48 @@ body.senza-scorrimento { overflow: hidden; }
 .voce:not(.evidenza):hover { background: var(--sfondo); border-radius: 6px; }
 /* I contatori in cima, colorati come nel mockup */
 .contatore b { font-size: 15px; }
+
+/* ── Dalla Tappa 3: campanella, notifiche, blocco, ingressi ─── */
+.io-link { display: flex; gap: 10px; align-items: center; color: inherit; text-decoration: none; }
+.io-link:hover b { color: var(--accento); }
+.io { position: relative; }
+.campanella { position: relative; background: none; border: 1px solid var(--linea); border-radius: 8px; width: 40px; height: 36px;
+  display: grid; place-items: center; cursor: pointer; color: var(--testo); }
+.campanella svg { width: 19px; height: 19px; }
+.campanella .numero { position: absolute; top: -6px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+  background: var(--rosso); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.tendina-notifiche { position: absolute; right: 0; top: calc(100% + 10px); width: min(400px, calc(100vw - 32px)); max-height: 70vh; overflow: auto;
+  background: var(--carta); border: 1px solid var(--linea); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 40; }
+.tendina-testa { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--linea); }
+.tendina-voce { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; border-bottom: 1px solid var(--linea); font-size: 14px; }
+.tendina-voce.letta { color: var(--tenue); }
+.tendina-voce:not(.letta) { background: var(--accento-tenue); }
+.tendina-testo { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.tendina-testo a { color: var(--accento); text-decoration: none; }
+.tendina-testo small { color: var(--tenue); font-size: 12px; }
+.tendina-vuota { padding: 14px; margin: 0; }
+
+.contatore.accento { background: var(--accento-tenue); color: var(--accento); border-color: transparent; }
+.pannello h2 .contatore.piccolo { margin-left: 6px; letter-spacing: 0; vertical-align: 1px; }
+.notifica { display: flex; gap: 12px; align-items: flex-start; background: var(--accento-tenue); border-radius: 8px; padding: 12px 14px; }
+.notifica .pallino { width: 9px; height: 9px; border-radius: 50%; background: var(--accento); margin-top: 7px; flex: none; }
+.notifica .testo { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.notifica .testo span { font-size: 14px; }
+.notifica .testo small { color: var(--tenue); font-size: 13px; }
+.azioni-notifica { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.azioni-notifica form { margin: 0; }
+
+.email-anteprima { border: 1px solid var(--linea); border-radius: 8px; overflow: hidden; font-size: 14px; }
+.email-testa { background: var(--sfondo); padding: 8px 12px; display: grid; gap: 2px; color: var(--tenue); font-size: 13px; }
+.email-corpo { padding: 12px; }
+.email-corpo p { margin: 0 0 8px !important; }
+.testo-email { max-width: 360px; }
+
+.blocco { position: fixed; inset: 0; z-index: 100; background: var(--sfondo); display: grid; place-items: center; padding: 16px; }
+.blocco-scheda { width: min(400px, 100%); }
+.blocco-scheda label { font-size: 13px; font-weight: 700; color: var(--tenue); }
+.blocco-scheda input { border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 9px 10px; }
+.blocco-scheda .link { justify-self: start; }
+
+.semplice .orario { font-variant-numeric: tabular-nums; font-weight: 600; }
+.semplice tr.assente td { color: var(--tenue); }

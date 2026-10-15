@@ -18,9 +18,13 @@ async function chiedi(url, opzioni = {}) {
     ...opzioni,
     headers: { "X-Parziale": "1", ...(opzioni.headers || {}) },
   });
-  if (risposta.redirected && new URL(risposta.url).pathname === "/login") {
+  if (risposta.status === 401 || (risposta.redirected && new URL(risposta.url).pathname === "/login")) {
     location.href = "/login?scaduta=1";
     throw new Error("Sessione scaduta");
+  }
+  if (risposta.status === 423) {
+    window.mostraBlocco?.(false); // schermo bloccato: serve la password
+    throw new Error("Schermo bloccato");
   }
   return risposta;
 }
@@ -33,6 +37,7 @@ async function aggiornaSotto() {
   const nuova = new DOMParser().parseFromString(html, "text/html").querySelector("[data-aggiornabile]");
   if (nuova) zona.replaceWith(nuova);
 }
+window.aggiornaSotto = aggiornaSotto; // la usa anche la campanella
 
 // ── Il pannello laterale ─────────────────────────────────────
 const laterale = document.createElement("div");
@@ -70,9 +75,21 @@ function chiudiPannello() {
   document.body.classList.remove("senza-scorrimento");
 }
 
+// I moduli "rapidi" (es. "Letto" sulle notifiche): partono dietro le quinte,
+// poi si aggiornano la pagina sotto e la campanella.
+document.addEventListener("submit", async (evento) => {
+  const modulo = evento.target;
+  if (!modulo.matches("[data-rapido]")) return;
+  evento.preventDefault();
+  await chiedi(modulo.action, { method: "POST", body: new URLSearchParams(new FormData(modulo)) });
+  await aggiornaSotto();
+  window.aggiornaCampanella?.();
+});
+
 // Le azioni dentro il pannello (e nella pagina intera) partono senza cambiare pagina
 document.addEventListener("submit", async (evento) => {
   const modulo = evento.target;
+  if (modulo.matches("[data-rapido], [data-blocca-ora]")) return;
   const dentroPannello = modulo.closest(".cassetto-corpo");
   const dentroPagina = modulo.closest("[data-dettaglio]");
   if (!dentroPannello && !dentroPagina) return;
@@ -92,6 +109,7 @@ document.addEventListener("submit", async (evento) => {
   await apriPannello(esito.id || scadenzaAperta);
   if (esito.errore) mostraErrore(esito.errore);
   aggiornaSotto();
+  window.aggiornaCampanella?.();
 });
 
 function mostraErrore(testo) {

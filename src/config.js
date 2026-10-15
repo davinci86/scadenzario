@@ -14,8 +14,32 @@ module.exports = {
   percorsoDb:
     process.env.DB_PATH || path.join(__dirname, "..", "dati", "scadenzario.db"),
 
-  // Dopo quanti minuti senza fare nulla si viene disconnessi.
-  minutiInattivita: Number(process.env.MINUTI_INATTIVITA) || 30,
+  // Blocco dello schermo: dopo quanti minuti di inattività (ognuno può
+  // scegliere il suo valore nel profilo, da 1 a 20). Non si esce: si blocca.
+  minutiBloccoPredefiniti: 10,
+  minutiBloccoMin: 1,
+  minutiBloccoMax: 20,
+
+  // Rete di sicurezza: ogni sessione finisce comunque la notte, a quest'ora.
+  oraFineSessione: 2,
+
+  // Promemoria (dalla Tappa 3). Gli atti del catalogo hanno i loro;
+  // questi valgono per le scadenze senza atto. Il giorno prima e
+  // l'avviso di scadenza superata sono sempre attivi.
+  promemoriaPredefiniti: [7, 1],
+  promemoriaUdienzeOre: [48, 24],
+  // Ogni quanti minuti il server controlla se ci sono promemoria da creare
+  minutiControlloPromemoria: 5,
+
+  // Email: si configura sul server dello studio con le variabili d'ambiente.
+  // Finché SMTP_HOST è vuoto, le email restano "in coda" e non partono.
+  email: {
+    host: process.env.SMTP_HOST || "",
+    porta: Number(process.env.SMTP_PORT) || 587,
+    utente: process.env.SMTP_USER || "",
+    password: process.env.SMTP_PASS || "",
+    mittente: process.env.SMTP_FROM || "Scadenzario <scadenzario@studio.example>",
+  },
 
   // Dopo quanti tentativi di accesso sbagliati l'utente viene bloccato…
   tentativiMassimi: 5,

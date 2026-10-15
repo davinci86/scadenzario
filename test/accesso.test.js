@@ -114,14 +114,14 @@ test("un utente disattivato non può entrare", async (t) => {
   assert.equal(cookie, null);
 });
 
-test("la sessione scade dopo il periodo di inattività", async (t) => {
+test("dopo il periodo di inattività lo schermo si blocca (la sessione resta, ma serve la password)", async (t) => {
   const { db, indirizzo } = await avviaApp(t);
   const { cookie } = await accedi(indirizzo, "a.ferrara", "demo");
-  // Facciamo finta che l'ultima attività sia di 31 minuti fa.
-  db.prepare("UPDATE sessioni SET ultima_attivita = ?").run(Date.now() - 31 * 60_000);
+  // Facciamo finta che l'ultima attività sia di 11 minuti fa (il blocco predefinito è a 10)
+  db.prepare("UPDATE sessioni SET ultima_attivita = ?").run(Date.now() - 11 * 60_000);
   const risposta = await apri(indirizzo, "/", cookie);
-  assert.equal(risposta.status, 302);
-  assert.equal(risposta.headers.get("location"), "/login?scaduta=1");
+  assert.equal(risposta.status, 423);
+  assert.match(await risposta.text(), /Schermo bloccato/);
 });
 
 test("un nome con caratteri speciali viene mostrato come testo, non eseguito", async (t) => {
