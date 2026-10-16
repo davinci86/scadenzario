@@ -2,12 +2,12 @@
 // IL MENU LATERALE
 // • «Comprimi» lascia solo le icone; la scelta resta salvata nel
 //   profilo (come il tema), quindi vale su ogni computer.
-// • Da compresso, fermandosi con il mouse su un'icona per qualche
+// • Da compresso, fermandosi con il mouse su un'icona per un
 //   secondo compare il nome della voce. Con la tastiera (Tab)
 //   compare subito: chi usa la tastiera non deve aspettare.
 // ─────────────────────────────────────────────────────────────
 (function () {
-  const ATTESA_ETICHETTA = 3000; // millisecondi prima che compaia il nome (3 secondi)
+  const ATTESA_ETICHETTA = 1000; // millisecondi prima che compaia il nome (1 secondo)
 
   const radice = document.documentElement;
   const barra = document.querySelector(".barra");
