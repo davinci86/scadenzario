@@ -476,3 +476,29 @@ details.pannello summary { cursor: pointer; }
 .etichetta.errore-etichetta { background: var(--errore-tenue); color: var(--rosso); }
 td.diverso { background: var(--ambra-tenue); font-weight: 700; }
 .dati dd .nota { overflow-wrap: anywhere; }
+
+/* ── Impostazioni ── */
+.catalogo td { vertical-align: top; }
+.azioni-riga { text-align: right; white-space: nowrap; }
+.riga-storico td { padding-top: 0; border-top: 0; }
+.riga-storico summary { cursor: pointer; color: var(--accento); font-size: 13px; font-weight: 600; }
+.versioni { display: grid; gap: 8px; margin-top: 8px; }
+.versioni > div { background: var(--sfondo); border-radius: 8px; padding: 8px 10px; font-size: 14px; }
+.riquadro-regola { border: 1px solid var(--linea) !important; border-radius: 10px; padding: 12px 14px !important; display: grid; gap: 12px; }
+.anteprima-regola { margin: 0; background: var(--accento-tenue); border-radius: 8px; padding: 10px 12px; min-height: 2.6em; }
+.modulo-cambio { display: grid; gap: 20px; max-width: 980px; }
+.confronto { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.confronto > div { background: var(--sfondo); border-radius: 8px; padding: 10px 12px; }
+.confronto .dopo { background: var(--accento-tenue); }
+@media (max-width: 640px) { .confronto { grid-template-columns: 1fr; } }
+.passo { display: grid; gap: 12px; padding-top: 16px; border-top: 1px solid var(--linea); }
+.passo h3 { margin: 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+.data-in-linea { margin: 0 6px; }
+.anteprima-cambio tr.esclusa { opacity: .45; }
+.anticipata { color: var(--rosso); font-weight: 700; }
+.posticipata { color: var(--ambra); font-weight: 700; }
+.riepilogo-cambio { margin: 0; font-weight: 600; }
+.riepilogo-cambio.attenzione-forte { color: var(--rosso); }
+.modulo-cambio input:not([type=checkbox]):not([type=radio]), .in-linea input:not([type=checkbox]):not([type=radio]) {
+  border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 7px 10px; }
+.modulo-cambio .campo input:not([type=checkbox]):not([type=radio]) { width: 100%; box-sizing: border-box; }

@@ -10,7 +10,8 @@ const config = require("../config");
 
 // Solo il modulo: si usa nella finestra sovrapposta e nella pagina.
 // inFinestra: nella finestra sovrapposta non c'è «Annulla» (si chiude con la ×)
-function moduloNuova(atti, utenti, valori = {}, errori = [], { inFinestra = false } = {}) {
+// terminiAltro: i termini proposti per gli atti fuori catalogo (Impostazioni)
+function moduloNuova(atti, utenti, valori = {}, errori = [], { inFinestra = false, terminiAltro = config.terminiAltro } = {}) {
   const v = (campo) => esc(valori[campo] ?? "");
   const tipo = TIPI[valori.tipo] ? valori.tipo : "scadenza";
   const squadraScelta = new Set([].concat(valori.squadra ?? []).map(String));
@@ -56,7 +57,7 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
     <p class="avviso">Atto fuori catalogo: la scadenza resterà <b>da verificare</b> finché l'Admin non controlla il termine.</p>
     <div class="due-colonne">
       <div class="campo"><label for="termine_altro">Termine</label>
-        <select id="termine_altro" name="termine_altro">${config.terminiAltro.map((g) =>
+        <select id="termine_altro" name="termine_altro">${terminiAltro.map((g) =>
           `<option value="${g}"${String(valori.termine_altro ?? 30) === String(g) ? " selected" : ""}>${g} giorni</option>`).join("")}
           <option value="manuale"${valori.termine_altro === "manuale" ? " selected" : ""}>Forza la data a mano…</option>
         </select></div>
@@ -88,13 +89,13 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
 // Il link "← Torna allo scadenzario" è lo stesso della scheda di una scadenza
 const { tornaAlloScadenzario } = require("./scadenza");
 
-function paginaNuova(utente, atti, utenti, valori, errori) {
+function paginaNuova(utente, atti, utenti, valori, errori, opzioni = {}) {
   return layout({
     titolo: "Nuova scadenza",
     utente,
     attiva: "scadenzario",
     script: ["nuova-scadenza.js"],
-    contenuto: tornaAlloScadenzario + moduloNuova(atti, utenti, valori, errori),
+    contenuto: tornaAlloScadenzario + moduloNuova(atti, utenti, valori, errori, opzioni),
   });
 }
 

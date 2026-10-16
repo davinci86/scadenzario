@@ -48,7 +48,7 @@ module.exports = {
     oraGiornaliero: 21,
     // Per quanti giorni si tiene ogni tipo di backup (0 = per sempre).
     // Sono i valori iniziali: l'Admin li cambia dalla pagina Backup.
-    giorniDaTenere: { auto: 3, giornaliero: 90, mensile: 0, manuale: 365, "prima-del-ripristino": 365 },
+    giorniDaTenere: { auto: 3, giornaliero: 90, mensile: 0, manuale: 365, "prima-del-ripristino": 365, "prima-di-modifica": 365 },
   },
 
   // Email: si configura sul server dello studio con le variabili d'ambiente.

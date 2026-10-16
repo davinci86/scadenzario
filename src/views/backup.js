@@ -9,7 +9,7 @@ const { TIPI } = require("../servizi/backup");
 const quando = (d) => d.toLocaleString("it-IT", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 const peso = (byte) => byte == null ? "—" : byte < 1024 * 1024 ? `${Math.max(1, Math.round(byte / 1024))} KB` : `${(byte / 1024 / 1024).toFixed(1)} MB`;
 
-const FILTRI = [["", "Tutti"], ["giornaliero", "Giornalieri"], ["mensile", "Mensili"], ["auto", "Automatici"], ["altri", "Manuali e prima dei ripristini"]];
+const FILTRI = [["", "Tutti"], ["giornaliero", "Giornalieri"], ["mensile", "Mensili"], ["auto", "Automatici"], ["altri", "Manuali e di sicurezza"]];
 
 function paginaBackup(utente, d) {
   const ultimo = d.elenco[0];
@@ -20,7 +20,7 @@ function paginaBackup(utente, d) {
       : d.stato.nas.ok ? `<span class="etichetta ok">Funziona</span> <span class="nota">ultima copia ${quando(new Date(d.stato.nas.quando))}</span>`
       : `<span class="etichetta">In attesa</span> <span class="nota">al prossimo backup</span>`;
 
-  const filtrati = d.elenco.filter((b) => !d.filtro ? true : d.filtro === "altri" ? ["manuale", "prima-del-ripristino"].includes(b.tipo) : b.tipo === d.filtro);
+  const filtrati = d.elenco.filter((b) => !d.filtro ? true : d.filtro === "altri" ? ["manuale", "prima-del-ripristino", "prima-di-modifica"].includes(b.tipo) : b.tipo === d.filtro);
 
   return layout({
     titolo: "Backup",

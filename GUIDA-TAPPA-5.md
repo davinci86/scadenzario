@@ -1,4 +1,6 @@
-# Guida alla Tappa 5 · Parte A: backup e ripristino
+# Guida alla Tappa 5
+
+# Parte A: backup e ripristino
 
 ## Da provare
 
@@ -56,3 +58,58 @@ rischio. Ogni nostro backup è completo e si ripristina da solo.
 1. In `src/config.js`, `backup.minutiControllo`: portalo a 1 e guarda i backup automatici
    comparire dopo ogni modifica (poi rimettilo a 10).
 2. Apri un `.db.gz` con 7-Zip o con Archive Utility del Mac: dentro c'è il database.
+
+
+# Parte B: Impostazioni
+
+Menu **Impostazioni** (solo Admin), con tre sezioni.
+
+## Da provare
+
+**Catalogo degli atti**
+1. **+ Nuovo atto**: mentre compili, sotto "Come si calcola il termine" compare la regola
+   a parole e un esempio di calcolo con la data di oggi. Crealo: è subito disponibile in
+   «+ Nuova scadenza».
+2. Apri **Ricorso al TAR** → cambia solo i promemoria → Salva: si salva subito, senza
+   domande (le scadenze non cambiano). Nello «Storico» dell'atto c'è la riga.
+3. Ora cambia i **giorni** da 60 a 90 → Salva: si apre **Modifica dei termini**.
+   - *1 · Perché cambia*: normativa (serve il riferimento alla norma), errore, decisione interna;
+     più una spiegazione.
+   - *2 · Da quando vale*: retroattiva, dal giorno X, oppure una per una. L'anteprima sotto
+     si aggiorna mentre scegli: quali scadenze, di quanto si spostano, se qualcuna
+     risulterebbe già scaduta.
+   - *3 · Applica*: prima viene fatto un backup («Prima di una modifica dei termini»), poi
+     le scadenze scelte vengono ricalcolate; ognuna ha la riga nello storico e chi se ne
+     occupa riceve una notifica. Le scadenze corrette a mano non vengono toccate.
+
+**Festività e chiusure**: aggiungi una chiusura (es. un ponte). Se una scadenza aperta cade
+proprio in quel giorno, in cima compare «Da controllare» con il link per aprirla.
+Le chiusure valgono per i calcoli fatti da quel momento: le scadenze già calcolate non si
+spostano da sole (decide l'avvocato, dal dettaglio: Ricalcola o Correggi).
+
+**Valori predefiniti**: promemoria per le scadenze senza atto, per le udienze, termini
+proposti per gli atti fuori catalogo, giorni dei fascicoli. Prima erano in `src/config.js`:
+lì restano solo come valori iniziali.
+
+## Cosa c'è nel codice
+
+```
+src/db/catalogo.js          creare/modificare atti, anteprima e applicazione dei cambi, chiusure
+src/servizi/impostazioni.js valori predefiniti (tabella "impostazioni")
+src/routes/impostazioni.js
+src/views/impostazioni.js
+public/js/impostazioni.js   anteprima della regola e del ricalcolo, nel browser
+test/impostazioni.test.js
+```
+
+**Dati e regola, separati.** Nome, materia, promemoria si salvano subito. La *regola*
+(decorrenza, giorni, direzione, sospensione feriale, giorno utile) no: `regolaCambia`
+se ne accorge e la rotta porta alla pagina del cambio, con la nuova regola nell'indirizzo.
+Finché non premi «Applica», l'atto non cambia.
+
+**L'anteprima e l'applicazione usano lo stesso calcolo** (`scadenzeInteressate`): quello
+che vedi è esattamente quello che succede. Il JavaScript della pagina serve solo a
+mostrarlo prima; quando premi Applica, decide il server, in un'unica transazione.
+
+**Lo storico dell'atto** (tabella `atti_versioni`): ogni creazione e modifica, con chi,
+quando, perché, la norma, la regola prima e dopo, e quante scadenze ha ricalcolato.

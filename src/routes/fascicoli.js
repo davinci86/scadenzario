@@ -10,6 +10,7 @@ const { utentiAttivi } = require("../db/scadenze");
 const { richiediAccesso } = require("../auth/permessi");
 const { paginaFascicoli } = require("../views/fascicoli");
 const { percorsoLocale } = require("./segnalazioni");
+const { leggiImpostazioni } = require("../servizi/impostazioni");
 
 // Cosa dire dopo ogni azione riuscita
 const FATTO = {
@@ -35,7 +36,7 @@ function rotteFascicoli(db) {
       collegate[f.numero] = F.scadenzeCollegate(db, f.numero);
     }
     res.send(paginaFascicoli(req.utente, {
-      q, numero, risultati, movimenti, collegate,
+      q, numero, risultati, movimenti, collegate, limite: leggiImpostazioni(db).giorniFascicoloFuori,
       esatto: risultati.some((f) => f.numero === numero),
       cliente: String(req.query.cliente ?? "").slice(0, 80),
       colleghi: utentiAttivi(db),

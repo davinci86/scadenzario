@@ -102,7 +102,9 @@ const DA_EVENTO = {
 function regolaAParole(regola) {
   const da = regola.direzione === "ritroso" ? "prima dell'udienza" : DA_EVENTO[regola.evento] || "";
   const feriale = regola.sospensioneFeriale ? ", con sospensione feriale" : ", senza sospensione feriale";
-  return `${regola.giorni} giorni ${da}${feriale}`;
+  // Il caso normale (si sposta al primo giorno utile) non si dice; l'eccezione sì
+  const proroga = regola.spostaGiornoUtile === false ? ", senza proroga per i festivi" : "";
+  return `${regola.giorni} giorni ${da}${feriale}${proroga}`;
 }
 
 // La spiegazione di un calcolo già fatto, per l'utente.

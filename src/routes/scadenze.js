@@ -20,6 +20,7 @@ const { TIPI, statiDi, primoStato, eChiuso } = require("../dominio/stati");
 const D = require("../dominio/date");
 const { paginaScadenzario } = require("../views/scadenzario");
 const { paginaNuova, moduloNuova } = require("../views/nuova");
+const { leggiImpostazioni } = require("../servizi/impostazioni");
 const { paginaScadenza, contenutoScadenza } = require("../views/scadenza");
 
 // Le richieste fatte dal pannello laterale e dalla finestra di inserimento
@@ -70,7 +71,7 @@ function leggiNuovaScadenza(db, corpo) {
         if (!D.eValida(dati.data)) errori.push("Manca la data di scadenza.");
       } else {
         const giorni = Number(corpo.termine_altro);
-        if (!config.terminiAltro.includes(giorni)) errori.push("Scegli il termine.");
+        if (!leggiImpostazioni(db).terminiAltro.includes(giorni)) errori.push("Scegli il termine.");
         else if (!D.eValida(dati.data_evento)) errori.push("Manca la data di decorrenza.");
         else {
           const regola = { giorni, direzione: "avanti", evento: "decorrenza",
@@ -126,8 +127,9 @@ function rotteScadenze(db) {
   // ── Nuova scadenza ──
   router.get("/scadenze/nuova", richiediAccesso, (req, res) => {
     if (!puoModificare(req.utente)) return vietato(req, res);
-    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db), {}, [], { inFinestra: true }));
-    res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db)));
+    const { terminiAltro } = leggiImpostazioni(db);
+    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db), {}, [], { inFinestra: true, terminiAltro }));
+    res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), {}, [], { terminiAltro }));
   });
 
   router.post("/scadenze", richiediAccesso, (req, res) => {
@@ -135,8 +137,8 @@ function rotteScadenze(db) {
     const esito = leggiNuovaScadenza(db, req.body ?? {});
     if (esito.errori) {
       const modulo = parziale(req)
-        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { inFinestra: true })
-        : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori);
+        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { inFinestra: true, terminiAltro: leggiImpostazioni(db).terminiAltro })
+        : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { terminiAltro: leggiImpostazioni(db).terminiAltro });
       return res.status(400).send(modulo);
     }
     const { dati, squadra } = esito;
@@ -312,7 +314,7 @@ function rotteScadenze(db) {
       regola = aRegola(atto);
     } else {
       const giorni = Number(req.query.giorni);
-      if (!config.terminiAltro.includes(giorni)) return res.status(400).json({ errore: "Termine non valido" });
+      if (!leggiImpostazioni(db).terminiAltro.includes(giorni)) return res.status(400).json({ errore: "Termine non valido" });
       regola = { giorni, direzione: "avanti", evento: "decorrenza", sospensioneFeriale: req.query.feriale === "1", spostaGiornoUtile: true };
     }
     const risultato = calcolaTermine(data, regola, chiusure(db));

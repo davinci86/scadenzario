@@ -16,6 +16,7 @@
 //   mensile        il primo giornaliero del mese
 //   manuale        "Fai un backup adesso"
 //   prima-del-ripristino  fatto da solo prima di ogni ripristino
+//   prima-di-modifica     fatto da solo prima di cambiare i termini di un atto
 // Per quanti giorni tenerli lo decide l'Admin (pagina Backup); 0 = per sempre.
 // Ogni copia va nella cartella del server e, se configurata, sul NAS.
 //
@@ -38,6 +39,7 @@ const TIPI = {
   mensile: "Mensile",
   manuale: "Fatto a mano",
   "prima-del-ripristino": "Prima di un ripristino",
+  "prima-di-modifica": "Prima di una modifica dei termini",
 };
 // Il nome del file dice tutto: scadenzario_2026-10-16_14-30-00_auto.db.gz
 // (Se due backup cadono nello stesso secondo, il secondo nome ha anche i millesimi.)

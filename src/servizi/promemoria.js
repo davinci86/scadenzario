@@ -20,9 +20,10 @@ const { notifica } = require("../db/notifiche");
 const { accodaEmail } = require("./email");
 const { giorniDaOggi, oggi, formatta } = require("../dominio/date");
 const { fuoriArchivio, giorniFuori, link } = require("../db/fascicoli");
+const { leggiImpostazioni } = require("./impostazioni");
 
 function sogliePromemoria(db, s) {
-  let giorni = config.promemoriaPredefiniti;
+  let giorni = leggiImpostazioni(db).promemoriaPredefiniti;
   if (s.atto_id) {
     const atto = db.prepare("SELECT promemoria FROM atti WHERE id = ?").get(s.atto_id);
     if (atto) giorni = atto.promemoria.split(",").map(Number).filter((n) => n > 0);
@@ -52,7 +53,7 @@ function generaPromemoria(db, giorno = oggi()) {
     };
 
     if (s.tipo === "udienza") {
-      for (const ore of config.promemoriaUdienzeOre) {
+      for (const ore of leggiImpostazioni(db).promemoriaUdienzeOre) {
         if (g >= 0 && g <= Math.ceil(ore / 24)) {
           invia(`Promemoria ${ore} ore: udienza ${quando(g)}${s.ora ? " alle " + s.ora : ""}`,
             `udienza-${ore}@${s.id}@${s.data}`,
@@ -84,7 +85,7 @@ function generaPromemoria(db, giorno = oggi()) {
   for (const f of fuoriArchivio(db)) {
     if (f.stato !== "consultazione" || !attivi.has(f.chi_id)) continue;
     const g = giorniFuori(f);
-    if (g < config.giorniFascicoloFuori) continue;
+    if (g < leggiImpostazioni(db).giorniFascicoloFuori) continue;
     const ricevuta = notifica(db, {
       utenti: [f.chi_id], tipo: "promemoria", link: link(f.numero), chiave: `fasc@${f.numero}@${f.dal}`,
       testo: `Hai il fascicolo ${f.numero} da ${g} giorni: se non ti serve, rimettilo in archivio`,

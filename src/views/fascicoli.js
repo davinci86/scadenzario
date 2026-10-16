@@ -14,12 +14,13 @@ const breve = (nome) => String(nome || "").replace(/^(Avv\.|Dott\.)\s*/, "");
 const giorni = (g) => (g === 0 ? "da oggi" : `da ${g} ${g === 1 ? "giorno" : "giorni"}`);
 
 // Lo stato a parole
-function statoFascicolo(f) {
+// "limite": dopo quanti giorni fuori archivio l'etichetta diventa arancione (Impostazioni)
+function statoFascicolo(f, limite = config.giorniFascicoloFuori) {
   if (!f) return `<span class="etichetta">Non registrato</span>`;
   if (f.stato === "archivio") return `<span class="etichetta ok">In archivio</span>`;
   if (f.stato === "consegna") return `<span class="etichetta attenzione">In consegna</span> da ${esc(breve(f.chi_nome))} a <b>${esc(breve(f.a_nome))}</b>, da confermare`;
   const g = giorniFuori(f);
-  return `<span class="etichetta${g >= config.giorniFascicoloFuori ? " attenzione" : ""}">In consultazione</span> da <b>${esc(f.chi_nome)}</b> · ${giorni(g)}`;
+  return `<span class="etichetta${g >= limite ? " attenzione" : ""}">In consultazione</span> da <b>${esc(f.chi_nome)}</b> · ${giorni(g)}`;
 }
 
 // Un pulsante = un piccolo modulo con il numero del fascicolo
@@ -59,11 +60,11 @@ function azioni(utente, f, numero, colleghi, { cliente, torna }) {
     (utente.ruolo === "admin" ? bottone(numero, "archivio", "Segna come rimesso in archivio", o) : "");
 }
 
-function schedaFascicolo(utente, f, numero, colleghi, { movimenti = null, collegate = [], cliente = "", torna = "/fascicoli" } = {}) {
+function schedaFascicolo(utente, f, numero, colleghi, { movimenti = null, collegate = [], cliente = "", torna = "/fascicoli", limite } = {}) {
   return `
 <article class="fascicolo">
   <header><b class="numero-fascicolo">Fascicolo ${esc(numero)}</b>${f?.cliente ? `<span>${esc(f.cliente)}</span>` : ""}</header>
-  <div>${statoFascicolo(f)}</div>
+  <div>${statoFascicolo(f, limite)}</div>
   ${collegate.length ? `<p class="nota">Scadenze collegate: ${collegate.map((s) =>
     `<a href="/scadenze/${s.id}" target="_blank" data-scadenza="${s.id}">N. ${s.id} · ${esc(s.cliente)}</a>`).join(", ")}</p>` : ""}
   <div class="azioni-fascicolo">${azioni(utente, f, numero, colleghi, { cliente, torna })}</div>
@@ -78,7 +79,8 @@ function schedaFascicolo(utente, f, numero, colleghi, { movimenti = null, colleg
 
 function paginaFascicoli(utente, d) {
   const torna = `/fascicoli${d.q ? `?n=${encodeURIComponent(d.q)}` : ""}`;
-  const scheda = (f, extra = {}) => schedaFascicolo(utente, f, f.numero, d.colleghi, { torna, ...extra });
+  const limite = d.limite ?? config.giorniFascicoloFuori;
+  const scheda = (f, extra = {}) => schedaFascicolo(utente, f, f.numero, d.colleghi, { torna, limite, ...extra });
 
   const risultati = d.q ? `
     ${d.esatto ? "" : `<p class="nota">Nessun fascicolo registrato con il numero «${esc(d.numero)}». Puoi registrarlo adesso con un movimento:</p>
@@ -118,9 +120,9 @@ ${d.errore ? `<div class="errore" role="alert">${esc(d.errore)}</div>` : ""}
         const g = giorniFuori(f);
         return `<a href="${link(f.numero)}"><span><b>${esc(f.numero)}</b>${f.cliente ? ` · ${esc(f.cliente)}` : ""}<br>
           <span class="nota">${f.stato === "consegna" ? `in consegna a ${esc(breve(f.a_nome))}` : esc(breve(f.chi_nome))}</span></span>
-          <span class="etichetta${g >= config.giorniFascicoloFuori ? " attenzione" : ""}">${g} gg</span></a>`;
+          <span class="etichetta${g >= limite ? " attenzione" : ""}">${g} gg</span></a>`;
       }).join("")}</div>` : `<p class="nota">Tutti i fascicoli registrati sono in archivio.</p>`}
-      <p class="nota spazio-sopra">Dopo ${config.giorniFascicoloFuori} giorni fuori dall'archivio chi ha il fascicolo riceve un promemoria.</p>
+      <p class="nota spazio-sopra">Dopo ${limite} giorni fuori dall'archivio chi ha il fascicolo riceve un promemoria.</p>
     </section>
   </aside>
 </div>`,

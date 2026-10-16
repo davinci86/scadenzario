@@ -106,7 +106,7 @@ function paginaDashboard(utente, d) {
         : `<p class="nota">Nessuna segnalazione da leggere.</p>`}
       <p class="spazio-sopra"><a class="btn piccolo" href="/segnalazioni/nuova" data-segnala>Segnala a un collega</a></p>`),
     d.fascicoliDaConfermare.length ? pannello("Fascicoli da confermare", `<div class="pila">${d.fascicoliDaConfermare
-      .map((f) => schedaFascicolo(utente, f, f.numero, d.colleghi, { torna: "/" })).join("")}</div>`) : "",
+      .map((f) => schedaFascicolo(utente, f, f.numero, d.colleghi, { torna: "/", limite: d.giorniFascicoli })).join("")}</div>`) : "",
     daLeggere(d.daLeggere),
     d.daVerificare?.length ? pannello("Termini da verificare", elenco(d.daVerificare, utente, "", `<span class="etichetta attenzione">da verificare</span>`, true)) : "",
     d.daAssegnare ? pannello("Da assegnare", elenco(d.daAssegnare, utente, "Tutte le scadenze hanno qualcuno che se ne occupa.", `<span class="etichetta attenzione">Da assegnare</span>`, true)) : "",

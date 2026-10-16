@@ -23,6 +23,7 @@ const ICONE = {
   segnalazioni: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z"/><path d="M12 7.5v3.5M12 13.5h.01"/>',
   fascicoli: '<path d="M3 7.5V18a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V9a1.5 1.5 0 0 0-1.5-1.5H12l-2-2.5H4.5A1.5 1.5 0 0 0 3 6.5z"/><path d="M8 13h8"/>',
   backup: '<ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-6M4.5 11.5v6c0 1.5 3.4 2.8 7.5 2.8"/><path d="M17.5 15.5v5M15 18l2.5 2.5L20 18"/>',
+  impostazioni: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
   comprimi: '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
 };
 const icona = (nome) =>
@@ -34,7 +35,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
   const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"],
     ["/segnalazioni", "Segnalazioni", "segnalazioni"], ["/fascicoli", "Fascicoli", "fascicoli"]];
   if (utente && (utente.ruolo === "admin" || utente.titolare)) voci.push(["/ingressi", "Ingressi", "ingressi"]);
-  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"], ["/admin/backup", "Backup", "backup"]);
+  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"], ["/admin/backup", "Backup", "backup"], ["/admin/impostazioni", "Impostazioni", "impostazioni"]);
 
   // Il menu laterale. Da compresso si vedono solo le icone: il nome compare
   // fermandosi sopra con il mouse (vedi public/js/menu.js).

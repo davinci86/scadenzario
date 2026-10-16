@@ -49,6 +49,25 @@ function aggiornaTabelle(db) {
   aggiungi("notifiche", "link", "TEXT");
   // Dalla Tappa 5: per quanti giorni tenere ogni tipo di backup (lo decide l'Admin)
   db.exec("CREATE TABLE IF NOT EXISTS impostazioni_backup (tipo TEXT PRIMARY KEY, giorni INTEGER NOT NULL)");
+  // Dalla Tappa 5: i valori predefiniti scelti dall'Admin (promemoria, termini…)
+  // e lo storico di ogni atto del catalogo (chi ha cambiato cosa, perché, da quando)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS impostazioni (
+      chiave TEXT PRIMARY KEY,
+      valore TEXT NOT NULL          -- in formato JSON, es. [7,1] oppure 30
+    );
+    CREATE TABLE IF NOT EXISTS atti_versioni (
+      id        INTEGER PRIMARY KEY,
+      atto_id   INTEGER NOT NULL REFERENCES atti(id),
+      quando    INTEGER NOT NULL,
+      utente_id INTEGER REFERENCES utenti(id),
+      motivo    TEXT NOT NULL,      -- creazione, normativa, errore, interna
+      norma     TEXT NOT NULL DEFAULT '',  -- riferimento normativo (per le modifiche normative)
+      testo     TEXT NOT NULL,      -- la spiegazione
+      prima     TEXT NOT NULL DEFAULT '',  -- la regola prima, a parole
+      dopo      TEXT NOT NULL DEFAULT '',  -- la regola dopo, a parole
+      modo      TEXT NOT NULL DEFAULT ''   -- da quando vale e quante scadenze ha ricalcolato
+    );`);
   // Dalla Tappa 5: il contatore delle modifiche (vedi sotto)
   contaModifiche(db);
 }
