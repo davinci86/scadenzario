@@ -169,7 +169,7 @@
   document.addEventListener("click", async (evento) => {
     const link = evento.target.closest("a[href]");
     if (!link || evento.defaultPrevented) return;
-    if (link.matches("[data-torna], [data-scadenza], [data-nuova], [data-chiudi]")) return; // li gestisce pannelli.js
+    if (link.matches("[data-torna], [data-scadenza], [data-nuova], [data-chiudi], [data-segnala]")) return; // li gestisce pannelli.js
     if (link.target === "_blank" || link.hasAttribute("download") || link.getAttribute("href").startsWith("#")) return;
     if (evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.button !== 0) return; // nuova scheda
     if (!moduliModificati().length) return;

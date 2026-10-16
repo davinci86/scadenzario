@@ -152,3 +152,18 @@ test("la pagina fascicoli trova per numero o per cliente", async (t) => {
   const nuovo = await (await apri(indirizzo, "/fascicoli?n=999/2026", paolo)).text();
   assert.match(nuovo, /Nessun fascicolo registrato con il numero «999\/2026»/);
 });
+
+test("la finestra sovrapposta riceve solo il modulo; l'invio risponde in breve", async (t) => {
+  const { db, indirizzo } = await avviaApp(t);
+  const paolo = (await accedi(indirizzo, "p.russo")).cookie;
+  const parziale = { cookie: paolo, "X-Parziale": "1" };
+  const html = await (await fetch(indirizzo + "/segnalazioni/nuova", { headers: parziale })).text();
+  assert.match(html, /<form method="post" action="\/segnalazioni"/);
+  assert.equal(html.includes("<html"), false); // niente pagina intorno
+  const errore = await fetch(indirizzo + "/segnalazioni", { method: "POST", headers: { ...parziale, "content-type": "application/x-www-form-urlencoded" }, body: "oggetto=x" });
+  assert.equal(errore.status, 400);
+  assert.equal((await errore.text()).includes("<html"), false);
+  const ok = await fetch(indirizzo + "/segnalazioni", { method: "POST", headers: { ...parziale, "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ a: id(db, "a.ferrara"), oggetto: "Ciao", testo: "Prova" }) });
+  assert.deepEqual(await ok.json(), { ok: true, messaggio: "Segnalazione inviata." });
+});

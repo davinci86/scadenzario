@@ -24,7 +24,7 @@ function schedaSegnalazione(s, { ricevuta, torna = "/segnalazioni" }) {
     ? `<div class="azioni-segnalazione">
         ${s.letta ? `<span class="nota">Letta il ${formattaMomento(s.letta)}</span>`
           : `<form method="post" action="/segnalazioni/${s.id}/letta" data-rapido><input type="hidden" name="torna" value="${esc(torna)}"><button class="btn piccolo pri">Letto</button></form>`}
-        <a class="btn piccolo" href="/segnalazioni/nuova?risposta=${s.id}">Rispondi</a>
+        <a class="btn piccolo" href="/segnalazioni/nuova?risposta=${s.id}" data-segnala>Rispondi</a>
       </div>`
     : `<p class="nota letture">${s.letture.map((l) =>
         `${esc(breve(l.nome))}: ${l.letta ? `<b>letta il ${formattaMomento(l.letta)}</b>` : "non ancora letta"}`).join(" · ")}</p>`;
@@ -54,7 +54,7 @@ function paginaSegnalazioni(utente, { vista, ricevute, inviate, fatto }) {
     contenuto: `
 <div class="testata-azioni">
   <div><h1>Segnalazioni</h1><p class="tenue">Per attirare l'attenzione di un collega su qualcosa. Restano da leggere finché non premi «Letto».</p></div>
-  <a class="btn pri" href="/segnalazioni/nuova">+ Segnala a un collega</a>
+  <a class="btn pri" href="/segnalazioni/nuova" data-segnala>+ Segnala a un collega</a>
 </div>
 ${fatto ? `<p class="avviso">${esc(fatto)}</p>` : ""}
 <nav class="schede" aria-label="Quali segnalazioni">
@@ -68,17 +68,13 @@ ${fatto ? `<p class="avviso">${esc(fatto)}</p>` : ""}
   });
 }
 
-// Il modulo. "valori" precompila (risposta, fascicolo, scadenza…).
-function paginaNuovaSegnalazione(utente, { colleghi, scadenze, valori = {}, errori = [], risposta = null }) {
+// Solo il modulo: si usa nella finestra sovrapposta e nella pagina intera.
+// "valori" precompila (risposta, fascicolo, scadenza…).
+function moduloSegnalazione({ colleghi, scadenze, valori = {}, errori = [], risposta = null, inFinestra = false }) {
   const scelti = new Set([].concat(valori.a ?? []).map(String));
   const v = (campo) => esc(valori[campo] ?? "");
-  return layout({
-    titolo: risposta ? "Rispondi" : "Segnala a un collega",
-    utente,
-    attiva: "segnalazioni",
-    contenuto: `
-<nav class="briciole"><a href="/segnalazioni"><span aria-hidden="true">←</span> Segnalazioni</a></nav>
-<h1>${risposta ? "Rispondi" : "Segnala a un collega"}</h1>
+  return `
+${inFinestra ? `<h2 class="titolo-finestra">${risposta ? "Rispondi" : "Segnala a un collega"}</h2>` : ""}
 ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}</div>` : ""}
 <form method="post" action="/segnalazioni" class="pannello modulo-grande" data-nome="Segnalazione"${errori.length ? " data-non-salvato" : ""}>
   ${risposta ? `<input type="hidden" name="risposta_a" value="${risposta.id}"><p class="nota">In risposta a «${esc(risposta.oggetto)}» di ${esc(risposta.da_nome)}</p>` : ""}
@@ -87,9 +83,9 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
       `<label class="radio"><input type="checkbox" name="a" value="${c.id}"${scelti.has(String(c.id)) ? " checked" : ""}><span><b>${esc(c.nome)}</b> <span class="nota">${esc(c.titolo)}</span></span></label>`).join("")}</div>
   </fieldset>
   <div class="campo"><label for="oggetto">Oggetto</label>
-    <input id="oggetto" name="oggetto" value="${v("oggetto")}" required maxlength="120" placeholder="Es. Controlla la memoria prima di mercoledì"></div>
+    <input id="oggetto" name="oggetto" value="${v("oggetto")}" required maxlength="120" placeholder="Es. Controlla la memoria prima di mercoledì"${scelti.size && !valori.oggetto ? " data-primo" : ""}></div>
   <div class="campo"><label for="testo">Messaggio</label>
-    <textarea id="testo" name="testo" rows="5" required maxlength="2000" placeholder="Scrivi in breve cosa deve sapere o fare.">${v("testo")}</textarea></div>
+    <textarea id="testo" name="testo" rows="5" required maxlength="2000" placeholder="Scrivi in breve cosa deve sapere o fare."${scelti.size && valori.oggetto ? " data-primo" : ""}>${v("testo")}</textarea></div>
   <fieldset class="campo"><legend>Priorità</legend>
     <div class="scelte">
       <label class="scelta"><input type="radio" name="priorita" value="normale"${valori.priorita !== "importante" ? " checked" : ""}> Normale</label>
@@ -104,9 +100,21 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
       <input id="fascicolo" name="fascicolo" value="${v("fascicolo")}" maxlength="40" placeholder="Es. 1234/2025"></div>
   </div>
   <p class="nota">Il Registro annota che la segnalazione è stata inviata e letta, ma non il testo.</p>
-  <div class="azioni"><a class="btn" href="/segnalazioni">Annulla</a><button class="btn pri">Invia</button></div>
-</form>`,
+  <div class="azioni">${inFinestra ? "" : `<a class="btn" href="/segnalazioni">Annulla</a>`}<button class="btn pri">Invia</button></div>
+</form>`;
+}
+
+// La pagina intera (se si apre il link in una nuova scheda, o senza JavaScript)
+function paginaNuovaSegnalazione(utente, dati) {
+  return layout({
+    titolo: dati.risposta ? "Rispondi" : "Segnala a un collega",
+    utente,
+    attiva: "segnalazioni",
+    contenuto: `
+<nav class="briciole"><a href="/segnalazioni"><span aria-hidden="true">←</span> Segnalazioni</a></nav>
+<h1>${dati.risposta ? "Rispondi" : "Segnala a un collega"}</h1>
+${moduloSegnalazione(dati)}`,
   });
 }
 
-module.exports = { paginaSegnalazioni, paginaNuovaSegnalazione, schedaSegnalazione };
+module.exports = { paginaSegnalazioni, paginaNuovaSegnalazione, moduloSegnalazione, schedaSegnalazione };

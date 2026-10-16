@@ -55,7 +55,7 @@ function azioni(utente, f, numero, colleghi, { cliente, torna }) {
     return bottone(numero, "consegno", "Conferma", { ...o, extra: scegli("Lo consegno a") }) +
       bottone(numero, "archivio", "L'ho rimesso in archivio", { ...o, classe: "pri" });
   }
-  return `<a class="btn piccolo" href="/segnalazioni/nuova?a=${f.chi_id}&fascicolo=${encodeURIComponent(numero)}">Chiedi a ${esc(breve(f.chi_nome))} il fascicolo</a>` +
+  return `<a class="btn piccolo" href="/segnalazioni/nuova?a=${f.chi_id}&fascicolo=${encodeURIComponent(numero)}" data-segnala>Chiedi a ${esc(breve(f.chi_nome))} il fascicolo</a>` +
     (utente.ruolo === "admin" ? bottone(numero, "archivio", "Segna come rimesso in archivio", o) : "");
 }
 

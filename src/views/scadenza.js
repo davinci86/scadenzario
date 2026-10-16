@@ -71,7 +71,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
     <textarea name="nota" rows="3" placeholder="Es. bozza inviata al dominus per la revisione" aria-label="Nota"></textarea>
     <button class="btn piccolo">Salva nota</button>
   </form>
-  <p class="nota spazio-sopra"><a href="/segnalazioni/nuova?scadenza=${s.id}">Segnala a un collega su questa attività →</a></p>
+  <p class="nota spazio-sopra"><a href="/segnalazioni/nuova?scadenza=${s.id}" data-segnala>Segnala a un collega su questa attività →</a></p>
 </section>` : "";
 
   const blocoStorico = `

@@ -464,3 +464,9 @@ details.pannello summary { cursor: pointer; }
   color: var(--testo); text-decoration: none; }
 .elenco-fascicoli a:last-child { border-bottom: 0; }
 .elenco-fascicoli a:hover b { color: var(--accento); }
+
+/* La × della finestra sovrapposta, e il messaggio volante */
+.chiudi-finestra { position: absolute; top: 16px; right: 16px; background: var(--carta); }
+.finestra-contenuto .titolo-finestra { padding-right: 44px; }
+.avviso-volante { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; background: var(--testo); color: var(--carta);
+  padding: 10px 16px; border-radius: 8px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.2); }

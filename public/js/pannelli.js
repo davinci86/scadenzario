@@ -5,6 +5,8 @@
 //   si apre il pannello che scorre da destra, sopra la pagina.
 // • Doppio clic: si apre la pagina intera, SEMPRE in una nuova scheda.
 // • "+ Nuova scadenza": il modulo si apre in una finestra sovrapposta.
+// • "Segnala a un collega": anche lui in una finestra sovrapposta, ma
+//   "fissa": si chiude solo con la × o inviando (non con Esc o clic fuori).
 //
 // Le azioni fatte nel pannello (stato, note, squadra…) vengono inviate
 // al server "dietro le quinte" (fetch), senza cambiare pagina: poi il
@@ -148,10 +150,10 @@ function mostraErrore(contenitore, testo) {
 // Risponde true (salvato), false (errore: si resta) o undefined (non è roba nostra).
 window.modifiche.registraSalvataggio(async (modulo) => {
   if (modulo.closest(".finestra-box")) {
-    const risposta = await chiedi("/scadenze", { method: "POST", body: new URLSearchParams(new FormData(modulo)) });
-    if (risposta.status === 400) { mostraModulo(await risposta.text()); return false; } // errori nel modulo
-    if (!risposta.ok) return false;
+    const esito = await inviaFinestra(modulo);
+    if (!esito) return false; // errori nel modulo: restano visibili
     await aggiornaSotto();
+    if (esito.messaggio) avvisoVolante(esito.messaggio);
     return true;
   }
   const contenitore = modulo.closest(".cassetto-corpo, [data-dettaglio]");
@@ -178,13 +180,19 @@ canale?.addEventListener("message", async ({ data }) => {
   }
 });
 
-// ── La finestra di inserimento ───────────────────────────────
+// ── La finestra sovrapposta (Nuova scadenza, Segnala a un collega) ──
 const finestra = document.createElement("div");
 finestra.className = "finestra";
 finestra.hidden = true;
-finestra.innerHTML = `<div class="velo" data-chiudi></div><div class="finestra-box" role="dialog" aria-modal="true" aria-label="Nuova scadenza"></div>`;
+finestra.innerHTML = `
+  <div class="velo" data-velo-finestra></div>
+  <div class="finestra-box" role="dialog" aria-modal="true">
+    <button class="chiudi chiudi-finestra" type="button" data-chiudi aria-label="Chiudi">×</button>
+    <div class="finestra-contenuto"></div>
+  </div>`;
 document.body.append(finestra);
-const boxFinestra = finestra.querySelector(".finestra-box");
+const boxFinestra = finestra.querySelector(".finestra-contenuto");
+let finestraFissa = false; // true = si chiude solo con la × o inviando
 
 // Chiusura "chiesta" dall'utente: prima controlliamo le modifiche non salvate
 async function chiediChiusuraFinestra() {
@@ -194,12 +202,18 @@ async function chiediChiusuraFinestra() {
 function mostraModulo(html) {
   boxFinestra.innerHTML = html;
   const modulo = boxFinestra.querySelector("form");
-  avviaModuloNuova(modulo); // da nuova-scadenza.js
-  modulo.querySelector("#cliente")?.focus();
+  if (modulo?.id === "nuova") {
+    avviaModuloNuova(modulo); // da nuova-scadenza.js
+    modulo.querySelector("#cliente")?.focus();
+  } else {
+    (modulo?.querySelector("[data-primo]") || modulo?.querySelector("input:not([type=hidden]), textarea"))?.focus();
+  }
 }
 
-async function apriFinestra() {
-  mostraModulo(await (await chiedi("/scadenze/nuova")).text());
+async function apriFinestra(url, { titolo, fissa = false }) {
+  finestraFissa = fissa;
+  finestra.querySelector(".finestra-box").setAttribute("aria-label", titolo);
+  mostraModulo(await (await chiedi(url)).text());
   finestra.hidden = false;
   document.body.classList.add("senza-scorrimento");
 }
@@ -210,17 +224,36 @@ function chiudiFinestra() {
   if (laterale.hidden) document.body.classList.remove("senza-scorrimento");
 }
 
+// Invia il modulo della finestra. Errori → il server rimanda il modulo (400)
+// e lo rimostriamo; tutto bene → il server risponde con un piccolo JSON.
+async function inviaFinestra(modulo) {
+  const risposta = await chiedi(modulo.action, { method: "POST", body: new URLSearchParams(new FormData(modulo)) });
+  if (risposta.status === 400) { mostraModulo(await risposta.text()); return null; }
+  if (!risposta.ok) { mostraErrore(boxFinestra, "Non è stato possibile salvare. Riprova."); return null; }
+  return risposta.json();
+}
+
 boxFinestra.addEventListener("submit", async (evento) => {
   evento.preventDefault();
   const modulo = evento.target;
-  const risposta = await chiedi("/scadenze", { method: "POST", body: new URLSearchParams(new FormData(modulo)) });
-  if (risposta.status === 400) return mostraModulo(await risposta.text()); // errori: rimostra il modulo
-  if (!risposta.ok) return alert("Non è stato possibile salvare la scadenza.");
-  const { id } = await risposta.json();
+  const esito = await inviaFinestra(modulo);
+  if (!esito) return;
   chiudiFinestra();
   await aggiornaSotto();
-  apriPannello(id); // la nuova scadenza si apre subito nel pannello
+  window.aggiornaCampanella?.();
+  if (modulo.id === "nuova") apriPannello(esito.id); // la nuova scadenza si apre subito nel pannello
+  if (esito.messaggio) avvisoVolante(esito.messaggio);
 });
+
+// Un messaggio breve in basso che sparisce da solo (es. "Segnalazione inviata.")
+function avvisoVolante(testo) {
+  const box = document.createElement("div");
+  box.className = "avviso-volante";
+  box.setAttribute("role", "status");
+  box.textContent = testo;
+  document.body.append(box);
+  setTimeout(() => box.remove(), 4000);
+}
 
 // ── Clic, doppio clic e tasti ────────────────────────────────
 document.addEventListener("click", (evento) => {
@@ -228,9 +261,18 @@ document.addEventListener("click", (evento) => {
     evento.preventDefault();
     return finestra.hidden ? chiediChiusuraPannello() : chiediChiusuraFinestra();
   }
+  if (evento.target.closest("[data-velo-finestra]")) {
+    if (!finestraFissa) chiediChiusuraFinestra(); // la finestra "fissa" non si chiude cliccando fuori
+    return;
+  }
   if (evento.target.closest("[data-nuova]")) {
     evento.preventDefault();
-    return apriFinestra();
+    return apriFinestra("/scadenze/nuova", { titolo: "Nuova scadenza" });
+  }
+  const segnala = evento.target.closest("a[data-segnala]");
+  if (segnala && !(evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.button !== 0)) {
+    evento.preventDefault();
+    return apriFinestra(segnala.getAttribute("href"), { titolo: "Segnala a un collega", fissa: true });
   }
   if (evento.target.closest("[data-nuova-scheda]")) return; // lascia aprire la nuova scheda
 
@@ -263,7 +305,7 @@ document.addEventListener("dblclick", (evento) => {
 document.addEventListener("keydown", (evento) => {
   if (evento.key !== "Escape" || evento.defaultPrevented) return;
   if (document.querySelector("dialog[open]")) return; // Esc chiude solo l'avviso
-  if (!finestra.hidden) chiediChiusuraFinestra();
+  if (!finestra.hidden) { if (!finestraFissa) chiediChiusuraFinestra(); }
   else if (!laterale.hidden) chiediChiusuraPannello();
 });
 

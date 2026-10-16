@@ -9,7 +9,10 @@ const express = require("express");
 const S = require("../db/segnalazioni");
 const { utentiAttivi, elencoScadenze } = require("../db/scadenze");
 const { richiediAccesso } = require("../auth/permessi");
-const { paginaSegnalazioni, paginaNuovaSegnalazione } = require("../views/segnalazioni");
+const { paginaSegnalazioni, paginaNuovaSegnalazione, moduloSegnalazione } = require("../views/segnalazioni");
+
+// La finestra sovrapposta chiede solo il modulo (intestazione X-Parziale: 1)
+const parziale = (req) => req.get("X-Parziale") === "1";
 
 // Solo indirizzi del nostro sito (mai "//altrosito")
 const percorsoLocale = (p, riserva) => (typeof p === "string" && /^\/(?!\/)/.test(p) ? p : riserva);
@@ -26,11 +29,14 @@ function rotteSegnalazioni(db) {
     }));
   });
 
-  const modulo = (req, valori, errori = [], risposta = null) => paginaNuovaSegnalazione(req.utente, {
-    colleghi: utentiAttivi(db).filter((u) => u.id !== req.utente.id),
-    scadenze: elencoScadenze(db, {}).sort((a, b) => a.id - b.id),
-    valori, errori, risposta,
-  });
+  const modulo = (req, valori, errori = [], risposta = null) => {
+    const dati = {
+      colleghi: utentiAttivi(db).filter((u) => u.id !== req.utente.id),
+      scadenze: elencoScadenze(db, {}).sort((a, b) => a.id - b.id),
+      valori, errori, risposta, inFinestra: parziale(req),
+    };
+    return parziale(req) ? moduloSegnalazione(dati) : paginaNuovaSegnalazione(req.utente, dati);
+  };
 
   router.get("/segnalazioni/nuova", richiediAccesso, (req, res) => {
     const q = req.query;
@@ -50,6 +56,7 @@ function rotteSegnalazioni(db) {
       return res.status(400).send(modulo(req, req.body, errori, risposta));
     }
     S.inviaSegnalazione(db, dati, req.utente);
+    if (parziale(req)) return res.json({ ok: true, messaggio: "Segnalazione inviata." });
     res.redirect("/segnalazioni?vista=inviate&fatto=" + encodeURIComponent("Segnalazione inviata."));
   });
 
