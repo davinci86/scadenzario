@@ -385,7 +385,7 @@ details.pannello summary { cursor: pointer; }
 :root[data-menu="compresso"] { --larghezza-barra: 64px; }
 @media (max-width: 820px) { :root { --larghezza-barra: 64px; } }
 
-.colonna { margin-left: var(--larghezza-barra); min-width: 0; transition: margin-left .15s ease; }
+.app-colonna { margin-left: var(--larghezza-barra); min-width: 0; transition: margin-left .15s ease; }
 .barra { position: fixed; left: 0; top: 0; bottom: 0; width: var(--larghezza-barra); box-sizing: border-box; transition: width .15s ease;
   background: var(--carta); border-right: 1px solid var(--linea);
   display: flex; flex-direction: column; gap: 4px; padding: 12px 10px; overflow: hidden; z-index: 30; }

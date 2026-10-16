@@ -76,7 +76,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
 <link rel="stylesheet" href="/stile.css">
 </head>
 <body>
-${utente ? `<div class="app">${barra}<div class="colonna">${barraAlta}<main>${contenuto}</main></div></div>` : `<main>${contenuto}</main>`}
+${utente ? `<div class="app">${barra}<div class="app-colonna">${barraAlta}<main>${contenuto}</main></div></div>` : `<main>${contenuto}</main>`}
 ${[...new Set(utente ? ["modifiche.js", "menu.js", "campanella.js", "blocco.js", ...script, "pannelli.js"] : script)].map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
 </body>
 </html>`;
