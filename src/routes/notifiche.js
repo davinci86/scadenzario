@@ -25,6 +25,7 @@ function rotteNotifiche(db) {
         quando: formattaMomento(n.creata),
         letta: !!n.letta,
         scadenza: n.scadenza_id ? { id: n.scadenza_id, cliente: n.cliente, attivita: n.attivita } : null,
+        link: n.link || null, // es. /segnalazioni o /fascicoli?n=…
       })),
     });
   });

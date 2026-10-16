@@ -12,6 +12,8 @@ const { elencoScadenze, utentiAttivi } = require("../db/scadenze");
 const { giorniDaOggi } = require("../dominio/date");
 const { puoModificare, eAdmin, vedeIngressi } = require("../auth/regole");
 const { notificheDi } = require("../db/notifiche");
+const { ricevute } = require("../db/segnalazioni");
+const { daConfermare } = require("../db/fascicoli");
 const { presenzeDelGiorno } = require("../db/presenze");
 const { ultimeEmail } = require("../servizi/email");
 const { registra } = require("../db/registro");
@@ -41,7 +43,11 @@ function rottePagine(db) {
     const dati = {
       mie,
       udienze: mie.filter((s) => s.tipo === "udienza"),
-      daLeggere: notificheDi(db, u.id, { soloDaLeggere: true, limite: 50 }),
+      // Le notifiche delle segnalazioni non si ripetono qui: hanno il loro pannello
+      daLeggere: notificheDi(db, u.id, { soloDaLeggere: true, limite: 50 }).filter((n) => n.tipo !== "segnalazione"),
+      segnalazioni: ricevute(db, u.id, { soloDaLeggere: true, limite: 20 }),
+      fascicoliDaConfermare: daConfermare(db, u.id),
+      colleghi: utentiAttivi(db),
       // Solo per l'Admin
       daVerificare: eAdmin(u) ? elencoScadenze(db, { daVerificare: true }) : null,
     };

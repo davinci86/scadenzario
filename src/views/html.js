@@ -20,6 +20,8 @@ const ICONE = {
   ingressi: '<path d="M13 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21H13"/><path d="M10 12h11M17.5 8.5 21 12l-3.5 3.5"/>',
   utenti: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20.5a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 20.5a6.5 6.5 0 0 0-2.6-5.2"/>',
   registro: '<path d="M6 3h11.5A1.5 1.5 0 0 1 19 4.5V21H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1Z"/><path d="M5 19a2 2 0 0 1 2-2h12M9 7.5h6M9 11h6"/>',
+  segnalazioni: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z"/><path d="M12 7.5v3.5M12 13.5h.01"/>',
+  fascicoli: '<path d="M3 7.5V18a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V9a1.5 1.5 0 0 0-1.5-1.5H12l-2-2.5H4.5A1.5 1.5 0 0 0 3 6.5z"/><path d="M8 13h8"/>',
   comprimi: '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
 };
 const icona = (nome) =>
@@ -28,7 +30,8 @@ const icona = (nome) =>
 // La cornice comune a tutte le pagine: menu a sinistra, barra in alto, contenuto.
 // "attiva" indica quale voce del menu evidenziare.
 function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
-  const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"]];
+  const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"],
+    ["/segnalazioni", "Segnalazioni", "segnalazioni"], ["/fascicoli", "Fascicoli", "fascicoli"]];
   if (utente && (utente.ruolo === "admin" || utente.titolare)) voci.push(["/ingressi", "Ingressi", "ingressi"]);
   if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"]);
 
@@ -38,7 +41,8 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
 <aside class="barra" aria-label="Menu principale">
   <a class="barra-marchio" href="/" aria-label="Scadenzario, vai alla dashboard"><span class="monogramma" aria-hidden="true">S</span><span class="testo-voce">Scadenzario</span></a>
   <nav class="barra-voci">${voci.map(([url, nome, id]) =>
-    `<a class="voce-menu" href="${url}" data-etichetta="${nome}"${attiva === id ? ' aria-current="page"' : ""}>${icona(id)}<span class="testo-voce">${nome}</span></a>`).join("")}
+    `<a class="voce-menu" href="${url}" data-etichetta="${nome}"${attiva === id ? ' aria-current="page"' : ""}>${icona(id)}<span class="testo-voce">${nome}</span>${
+      id === "segnalazioni" && utente.segnalazioniDaLeggere ? `<span class="pallino-menu" aria-label="${utente.segnalazioniDaLeggere} da leggere">${utente.segnalazioniDaLeggere}</span>` : ""}</a>`).join("")}
   </nav>
   <button class="voce-menu comprimi" type="button" data-comprimi data-etichetta="Espandi il menu" aria-label="Comprimi il menu">${icona("comprimi")}<span class="testo-voce">Comprimi</span></button>
 </aside>` : "";

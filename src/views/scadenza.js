@@ -71,6 +71,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
     <textarea name="nota" rows="3" placeholder="Es. bozza inviata al dominus per la revisione" aria-label="Nota"></textarea>
     <button class="btn piccolo">Salva nota</button>
   </form>
+  <p class="nota spazio-sopra"><a href="/segnalazioni/nuova?scadenza=${s.id}">Segnala a un collega su questa attività →</a></p>
 </section>` : "";
 
   const blocoStorico = `
@@ -92,7 +93,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
     ${s.calcolo ? `<dt>Calcolo</dt><dd>${esc(s.calcolo)}</dd>` : ""}
     ${s.correzione_manuale ? `<dt>Correzione</dt><dd>✎ Data corretta a mano: «${esc(s.correzione_manuale)}»</dd>` : ""}
     ${s.ufficio ? `<dt>Ufficio</dt><dd>${esc(s.ufficio)}</dd>` : ""}
-    ${s.fascicolo ? `<dt>Fascicolo</dt><dd>${esc(s.fascicolo)}</dd>` : ""}
+    ${s.fascicolo ? `<dt>Fascicolo</dt><dd>${esc(s.fascicolo)} · <a href="/fascicoli?n=${encodeURIComponent(s.fascicolo)}">dov'è?</a></dd>` : ""}
   </dl>
 </section>`;
 

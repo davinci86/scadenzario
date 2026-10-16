@@ -118,6 +118,12 @@
         link.textContent = `N. ${n.scadenza.id} · ${n.scadenza.cliente}`;
         link.addEventListener("click", () => (tendina.hidden = true));
         testo.append(link);
+      } else if (n.link) {
+        // Notifiche di segnalazioni e fascicoli: portano alla loro pagina
+        const link = document.createElement("a");
+        link.href = n.link;
+        link.textContent = "Apri";
+        testo.append(link);
       }
       const quando = document.createElement("small");
       quando.textContent = n.quando;

@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 const config = require("./config");
 const { apriDatabase } = require("./db/database");
-const { inserisciUtentiDiProva, inserisciDatiDiProva } = require("./db/seed");
+const { inserisciUtentiDiProva, inserisciDatiDiProva, inserisciProvaTappa4 } = require("./db/seed");
 const { creaApp } = require("./app");
 
 const db = apriDatabase(config.percorsoDb);
@@ -14,6 +14,7 @@ const db = apriDatabase(config.percorsoDb);
 if (config.sviluppo) {
   if (inserisciUtentiDiProva(db)) console.log("Creati gli utenti di prova (password per tutti: demo)");
   if (inserisciDatiDiProva(db)) console.log("Creati il catalogo e le scadenze di prova");
+  if (inserisciProvaTappa4(db)) console.log("Creati fascicoli e segnalazioni di prova");
 }
 
 // ── Lavori programmati: promemoria ed email ──

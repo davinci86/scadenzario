@@ -82,6 +82,8 @@ function leggiSessione(db, token, { automatica = false } = {}) {
     titolare: !!riga.titolare,
     menuCompresso: !!riga.menu_compresso,
     cambiaPassword: !!riga.cambia_password, // password provvisoria: deve sceglierne una sua
+    // Quante segnalazioni deve ancora leggere (il numerino nel menu)
+    segnalazioniDaLeggere: db.prepare("SELECT COUNT(*) AS n FROM segnalazioni_a WHERE utente_id = ? AND letta IS NULL").get(riga.id).n,
     bloccata,
   };
 }

@@ -4,12 +4,14 @@
 //   a destra:    il quadro dello STUDIO e due righe su come funziona
 //   sotto:       "Chi ha cosa", per Admin ed Editor
 // Una colonna stretta si legge meglio di una riga lunga quanto lo schermo.
-// (Notifiche "Da leggere" e promemoria arrivano con la Tappa 3.)
+// In cima: segnalazioni dei colleghi e fascicoli da confermare (Tappa 4).
 // ─────────────────────────────────────────────────────────────
 const { esc, layout, RUOLI } = require("./html");
 const { formatta, formattaEsteso, formattaMomento, oggi, giorniDaOggi } = require("../dominio/date");
 const { TIPI } = require("../dominio/stati");
 const { mancano, pillola } = require("./scadenze-comuni");
+const { schedaSegnalazione } = require("./segnalazioni");
+const { schedaFascicolo } = require("./fascicoli");
 
 function saluto(ora = new Date().getHours()) {
   return ora < 13 ? "Buongiorno" : ora < 18 ? "Buon pomeriggio" : "Buonasera";
@@ -44,7 +46,8 @@ function daLeggere(notifiche) {
         <span class="pallino"></span>
         <div class="testo"><b>${esc(n.testo)}</b>${n.scadenza_id ? `<span>N. ${n.scadenza_id} · ${esc(n.cliente)} · ${esc(n.attivita)}</span>` : ""}<small>${formattaMomento(n.creata)}</small></div>
         <div class="azioni-notifica">
-          ${n.scadenza_id ? `<a class="btn piccolo" href="/scadenze/${n.scadenza_id}" target="_blank" data-scadenza="${n.scadenza_id}">Apri</a>` : ""}
+          ${n.scadenza_id ? `<a class="btn piccolo" href="/scadenze/${n.scadenza_id}" target="_blank" data-scadenza="${n.scadenza_id}">Apri</a>`
+            : n.link ? `<a class="btn piccolo" href="${esc(n.link)}">Apri</a>` : ""}
           <form method="post" action="/notifiche/${n.id}/letta" data-rapido><button class="btn piccolo pri">Letto</button></form>
         </div>
       </div>`).join("")}
@@ -88,7 +91,7 @@ function paginaDashboard(utente, d) {
   const settimana = d.mie.filter((s) => { const g = giorniDaOggi(s.data); return g >= 0 && g <= 7; }).length;
 
   const contatori = [
-    `<span class="contatore${d.daLeggere.length ? " accento" : ""}"><b>${d.daLeggere.length}</b> da leggere</span>`,
+    `<span class="contatore${d.daLeggere.length + d.segnalazioni.length ? " accento" : ""}"><b>${d.daLeggere.length + d.segnalazioni.length}</b> da leggere</span>`,
     `<span class="contatore${scadute ? " rosso" : ""}"><b>${scadute}</b> scadute</span>`,
     `<span class="contatore${settimana ? " ambra" : ""}"><b>${settimana}</b> entro 7 giorni</span>`,
     `<span class="contatore"><b>${d.udienze.filter((s) => giorniDaOggi(s.data) <= 7).length}</b> udienze in settimana</span>`,
@@ -97,6 +100,13 @@ function paginaDashboard(utente, d) {
 
   // Colonna sinistra: le mie cose
   const sinistra = [
+    pannello(`Segnalazioni${d.segnalazioni.length ? ` <span class="contatore piccolo accento">${d.segnalazioni.length}</span>` : ""}`, `
+      ${d.segnalazioni.length
+        ? `<div class="pila">${d.segnalazioni.map((s) => schedaSegnalazione(s, { ricevuta: true, torna: "/" })).join("")}</div>`
+        : `<p class="nota">Nessuna segnalazione da leggere.</p>`}
+      <p class="spazio-sopra"><a class="btn piccolo" href="/segnalazioni/nuova">Segnala a un collega</a></p>`),
+    d.fascicoliDaConfermare.length ? pannello("Fascicoli da confermare", `<div class="pila">${d.fascicoliDaConfermare
+      .map((f) => schedaFascicolo(utente, f, f.numero, d.colleghi, { torna: "/" })).join("")}</div>`) : "",
     daLeggere(d.daLeggere),
     d.daVerificare?.length ? pannello("Termini da verificare", elenco(d.daVerificare, utente, "", `<span class="etichetta attenzione">da verificare</span>`, true)) : "",
     d.daAssegnare ? pannello("Da assegnare", elenco(d.daAssegnare, utente, "Tutte le scadenze hanno qualcuno che se ne occupa.", `<span class="etichetta attenzione">Da assegnare</span>`, true)) : "",

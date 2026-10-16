@@ -31,6 +31,10 @@ module.exports = {
   // Ogni quanti minuti il server controlla se ci sono promemoria da creare
   minutiControlloPromemoria: 5,
 
+  // Fascicoli (dalla Tappa 4): dopo quanti giorni fuori dall'archivio
+  // chi ha un fascicolo riceve un promemoria per rimetterlo a posto.
+  giorniFascicoloFuori: 30,
+
   // Email: si configura sul server dello studio con le variabili d'ambiente.
   // Finché SMTP_HOST è vuoto, le email restano "in coda" e non partono.
   email: {

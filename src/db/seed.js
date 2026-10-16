@@ -128,3 +128,45 @@ function inserisciDatiDiProva(db) {
 }
 
 module.exports.inserisciDatiDiProva = inserisciDatiDiProva;
+
+// ── Tappa 4: qualche fascicolo e segnalazione di prova (dati inventati) ──
+// Parte solo se non ce ne sono ancora: così vale anche per un database
+// creato nelle tappe precedenti.
+function inserisciProvaTappa4(db) {
+  const vuoto = db.prepare("SELECT (SELECT COUNT(*) FROM fascicoli) + (SELECT COUNT(*) FROM segnalazioni) AS n").get().n === 0;
+  if (!vuoto) return false;
+  const utente = (nomeUtente) => db.prepare("SELECT id FROM utenti WHERE nome_utente = ?").get(nomeUtente)?.id;
+  if (!utente("a.ferrara")) return false;
+  const giorniFa = (n) => Date.now() - n * 86_400_000;
+
+  // Fascicoli: uno fuori da 35 giorni (scatterà il promemoria), uno in consegna, uno in archivio
+  const insF = db.prepare("INSERT INTO fascicoli (numero, cliente, stato, chi_id, a_id, dal) VALUES (?, ?, ?, ?, ?, ?)");
+  const insM = db.prepare("INSERT INTO movimenti_fascicoli (numero, quando, utente_id, testo) VALUES (?, ?, ?, ?)");
+  insF.run("1234/2025", "Kone Ibrahim", "consultazione", utente("m.deluca"), null, giorniFa(35));
+  insM.run("1234/2025", giorniFa(35), utente("m.deluca"), "Preso dall'archivio da Avv. Marco De Luca");
+  const dalConsegna = giorniFa(0);
+  insF.run("0987/2024", "Rossi Antonio", "consegna", utente("p.russo"), utente("a.ferrara"), dalConsegna);
+  insM.run("0987/2024", giorniFa(3), utente("p.russo"), "Preso dall'archivio da Avv. Paolo Russo");
+  insM.run("0987/2024", giorniFa(0), utente("p.russo"), "Consegnato a Anna Ferrara, in attesa di conferma");
+  db.prepare(`INSERT INTO notifiche (utente_id, tipo, testo, chiave, creata, link) VALUES (?, 'fascicolo', ?, ?, ?, ?)`)
+    .run(utente("a.ferrara"), "Avv. Paolo Russo ti ha consegnato il fascicolo 0987/2024: conferma di averlo ricevuto",
+      `fasc-conf@0987/2024@${dalConsegna}`, Date.now(), "/fascicoli?n=0987%2F2024");
+  insF.run("1502/2026", "Hossain Rahim", "archivio", null, null, giorniFa(10));
+  insM.run("1502/2026", giorniFa(10), utente("g.esposito"), "Registrato per la prima volta");
+
+  // Segnalazioni
+  const insS = db.prepare(`INSERT INTO segnalazioni (da_id, oggetto, testo, priorita, scadenza_id, fascicolo, creata)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`);
+  const insA = db.prepare("INSERT INTO segnalazioni_a (segnalazione_id, utente_id, letta) VALUES (?, ?, ?)");
+  const s1 = insS.run(utente("p.russo"), "Controlla la memoria prima di mercoledì",
+    "Ho lasciato la bozza nella cartella condivisa. Mi servono le tue correzioni entro martedì sera.",
+    "importante", null, "0987/2024", giorniFa(0)).lastInsertRowid;
+  insA.run(s1, utente("a.ferrara"), null);
+  insA.run(s1, utente("l.romano"), giorniFa(0));
+  const s2 = insS.run(utente("a.ferrara"), "Telefonata del cliente Kone",
+    "Ha chiamato il cliente: richiama nel pomeriggio per l'appuntamento.", "normale", null, "", giorniFa(1)).lastInsertRowid;
+  insA.run(s2, utente("m.deluca"), null);
+  return true;
+}
+
+module.exports.inserisciProvaTappa4 = inserisciProvaTappa4;

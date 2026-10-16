@@ -421,3 +421,46 @@ details.pannello summary { cursor: pointer; }
 .etichetta-menu::before { content: ""; position: absolute; left: -5px; top: 50%; transform: translateY(-50%);
   border: 5px solid transparent; border-left: 0; border-right-color: var(--testo); }
 .radio input[type=checkbox], .radio input[type=radio] { padding: 0; width: auto; flex: none; margin-top: 3px; }
+
+/* ── Tappa 4: segnalazioni e fascicoli ── */
+.pila { display: grid; gap: 12px; }
+.pallino-menu { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 999px;
+  background: var(--accento); color: var(--accento-testo); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+:root[data-menu="compresso"] .voce-menu { position: relative; }
+:root[data-menu="compresso"] .pallino-menu { position: absolute; top: 2px; right: 8px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; }
+@media (max-width: 820px) { .voce-menu { position: relative; } .pallino-menu { position: absolute; top: 2px; right: 8px; min-width: 16px; height: 16px; font-size: 10px; padding: 0 4px; } }
+
+/* Schede (Ricevute / Inviate) */
+.schede { display: flex; gap: 4px; border-bottom: 1px solid var(--linea); margin-bottom: 16px; }
+.schede a { padding: 8px 12px; font-weight: 600; color: var(--tenue); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; gap: 6px; align-items: center; }
+.schede a[aria-current="page"] { color: var(--accento); border-bottom-color: var(--accento); }
+
+/* Una segnalazione */
+.segnalazione { background: var(--carta); border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; max-width: 820px; }
+.segnalazione.da-leggere { background: var(--accento-tenue); border-color: transparent; }
+.segnalazione.importante { border-left: 4px solid var(--ambra); }
+.segnalazione header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.segnalazione .oggetto { font-size: 16px; }
+.segnalazione p { margin: 0; }
+.testo-segnalazione { white-space: pre-wrap; }
+.azioni-segnalazione { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.azioni-segnalazione form { margin: 0; }
+
+/* Un fascicolo */
+.fascicolo { border: 1px solid var(--linea); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; background: var(--carta); }
+.fascicolo header { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.fascicolo p { margin: 0; }
+.numero-fascicolo { font-size: 16px; font-variant-numeric: tabular-nums; }
+.azioni-fascicolo { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.azioni-fascicolo form { margin: 0; display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.azioni-fascicolo select { max-width: 220px; }
+.passaggi summary { cursor: pointer; color: var(--accento); font-weight: 600; font-size: 14px; }
+.passaggi .storico { margin-top: 8px; }
+.cerca-fascicolo { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 8px; }
+.cerca-fascicolo input { border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 9px 10px; font-size: 16px; min-width: 0; }
+@media (max-width: 640px) { .cerca-fascicolo { grid-template-columns: 1fr; } }
+.elenco-fascicoli { display: grid; }
+.elenco-fascicoli a { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--linea);
+  color: var(--testo); text-decoration: none; }
+.elenco-fascicoli a:last-child { border-bottom: 0; }
+.elenco-fascicoli a:hover b { color: var(--accento); }

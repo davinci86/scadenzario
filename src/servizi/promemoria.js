@@ -11,6 +11,7 @@
 //  • scadenza superata: avviso al referente.
 //  • udienze: a 48 e a 24 ore.
 //  • scadenze senza squadra: i promemoria vanno ad Admin ed Editor.
+//  • fascicoli fuori dall'archivio da troppo tempo (Tappa 4): avviso a chi li ha.
 // I promemoria arrivano anche via email, senza nomi di clienti.
 // ─────────────────────────────────────────────────────────────
 const config = require("../config");
@@ -18,6 +19,7 @@ const { elencoScadenze } = require("../db/scadenze");
 const { notifica } = require("../db/notifiche");
 const { accodaEmail } = require("./email");
 const { giorniDaOggi, oggi, formatta } = require("../dominio/date");
+const { fuoriArchivio, giorniFuori, link } = require("../db/fascicoli");
 
 function sogliePromemoria(db, s) {
   let giorni = config.promemoriaPredefiniti;
@@ -75,6 +77,20 @@ function generaPromemoria(db, giorno = oggi()) {
     invia(g === 0 ? "Scade oggi" : g === 1 ? "Scade domani" : `Scade tra ${g} giorni`,
       `soglia-${soglia}@${s.id}@${s.data}`,
       `Hai una scadenza ${quando(g)} (${formatta(s.data)}).`);
+  }
+
+  // Fascicoli fuori dall'archivio da troppo tempo: un avviso a chi li ha in mano.
+  // La chiave contiene "dal": se il fascicolo torna e riesce, l'avviso potrà ripartire.
+  for (const f of fuoriArchivio(db)) {
+    if (f.stato !== "consultazione" || !attivi.has(f.chi_id)) continue;
+    const g = giorniFuori(f);
+    if (g < config.giorniFascicoloFuori) continue;
+    const ricevuta = notifica(db, {
+      utenti: [f.chi_id], tipo: "promemoria", link: link(f.numero), chiave: `fasc@${f.numero}@${f.dal}`,
+      testo: `Hai il fascicolo ${f.numero} da ${g} giorni: se non ti serve, rimettilo in archivio`,
+    });
+    for (const id of ricevuta) accodaEmail(db, id, `Hai un fascicolo fuori dall'archivio da ${g} giorni.`);
+    creati += ricevuta.length;
   }
   return creati;
 }

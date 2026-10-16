@@ -45,6 +45,8 @@ function aggiornaTabelle(db) {
   aggiungi("utenti", "eliminato", "INTEGER"); // quando è stato eliminato (vuoto = no)
   // Menu laterale compresso (solo icone): preferenza personale
   aggiungi("utenti", "menu_compresso", "INTEGER NOT NULL DEFAULT 0");
+  // Dalla Tappa 4: una notifica può portare a una pagina (segnalazioni, fascicoli)
+  aggiungi("notifiche", "link", "TEXT");
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,
@@ -172,6 +174,47 @@ function creaTabelle(db) {
       uscita          INTEGER,           -- ultima uscita con "Esci" (vuoto = non registrata)
       ultima_attivita INTEGER NOT NULL,
       PRIMARY KEY (utente_id, data)
+    );
+
+    -- ── Dalla Tappa 4 ──────────────────────────────────────
+
+    -- Segnalazioni: messaggi per attirare l'attenzione di un collega.
+    -- Non è una chat: ogni segnalazione ha un oggetto, un testo e chi la deve leggere.
+    CREATE TABLE IF NOT EXISTS segnalazioni (
+      id          INTEGER PRIMARY KEY,
+      da_id       INTEGER NOT NULL REFERENCES utenti(id),
+      oggetto     TEXT NOT NULL,
+      testo       TEXT NOT NULL,
+      priorita    TEXT NOT NULL CHECK (priorita IN ('normale', 'importante')),
+      scadenza_id INTEGER REFERENCES scadenze(id),      -- facoltativa
+      fascicolo   TEXT NOT NULL DEFAULT '',             -- facoltativo
+      risposta_a  INTEGER REFERENCES segnalazioni(id),  -- se è una risposta
+      creata      INTEGER NOT NULL
+    );
+    -- I destinatari, con il momento in cui ognuno l'ha letta (la "conferma di lettura")
+    CREATE TABLE IF NOT EXISTS segnalazioni_a (
+      segnalazione_id INTEGER NOT NULL REFERENCES segnalazioni(id),
+      utente_id       INTEGER NOT NULL REFERENCES utenti(id),
+      letta           INTEGER,   -- vuoto = da leggere
+      PRIMARY KEY (segnalazione_id, utente_id)
+    );
+
+    -- Fascicoli cartacei: dove sono adesso. Il numero è quello scritto sulla copertina.
+    CREATE TABLE IF NOT EXISTS fascicoli (
+      numero  TEXT PRIMARY KEY,   -- es. 1234/2025 (in maiuscolo, spazi sistemati)
+      cliente TEXT NOT NULL DEFAULT '',
+      stato   TEXT NOT NULL CHECK (stato IN ('archivio', 'consultazione', 'consegna')),
+      chi_id  INTEGER REFERENCES utenti(id),  -- chi ce l'ha (o chi lo sta consegnando)
+      a_id    INTEGER REFERENCES utenti(id),  -- a chi lo sta consegnando (deve confermare)
+      dal     INTEGER NOT NULL                -- da quando è in questo stato
+    );
+    -- Tutti i passaggi di ogni fascicolo
+    CREATE TABLE IF NOT EXISTS movimenti_fascicoli (
+      id        INTEGER PRIMARY KEY,
+      numero    TEXT NOT NULL REFERENCES fascicoli(numero),
+      quando    INTEGER NOT NULL,
+      utente_id INTEGER REFERENCES utenti(id),
+      testo     TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS registro (
