@@ -361,3 +361,21 @@ kbd { font-family: var(--font-interfaccia); font-size: 11px; color: var(--tenue)
 .avviso-modifiche ul { margin: 8px 0 12px; padding-left: 20px; }
 .avviso-modifiche li { font-weight: 600; }
 .scelte-avviso { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+/* ── Utenti ── */
+.testata-azioni { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.testata-azioni h1 { margin: 0; }
+.etichetta.ok { background: var(--accento-tenue); color: var(--accento); }
+tr.spento td { color: var(--tenue); }
+ul.semplice { margin: 8px 0; padding-left: 20px; }
+ul.semplice li { margin: 3px 0; }
+details.pannello summary { cursor: pointer; }
+.spazio-sotto { margin-bottom: 12px; }
+.radios { display: grid; gap: 8px; }
+.radio { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--linea); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+.radio input { margin-top: 3px; width: auto; }
+.radio b { margin-right: 4px; }
+.radio:has(input:checked) { border-color: var(--accento); background: var(--accento-tenue); }
+.zona-pericolo { border-color: var(--errore); }
+.zona-pericolo h2 { color: var(--errore); }
+.modulo .scelta input[type=checkbox] { width: auto; }

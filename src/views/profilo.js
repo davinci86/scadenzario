@@ -2,7 +2,7 @@
 const { esc, layout, RUOLI } = require("./html");
 const config = require("../config");
 
-function paginaProfilo(utente, { salvato = false, errori = [], valori = {} } = {}) {
+function paginaProfilo(utente, { salvato = false, password = false, errori = [], valori = {} } = {}) {
   const v = {
     minuti_blocco: valori.minuti_blocco ?? utente.minutiBlocco,
     email: valori.email ?? utente.email,
@@ -15,6 +15,7 @@ function paginaProfilo(utente, { salvato = false, errori = [], valori = {} } = {
     contenuto: `
 <h1>Il mio profilo</h1>
 ${salvato ? `<p class="avviso">Preferenze salvate.</p>` : ""}
+${password ? `<p class="avviso">Password cambiata.</p>` : ""}
 ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}</div>` : ""}
 <form method="post" action="/profilo" class="pannello modulo-grande" data-nome="Il mio profilo">
   <p><b>${esc(utente.nome)}</b> · ${esc(utente.nomeUtente)} · ${RUOLI[utente.ruolo]}${utente.titolare ? " · titolare" : ""}</p>
@@ -36,7 +37,11 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
     </div>
   </fieldset>
   <div class="azioni"><button class="btn pri">Salva</button></div>
-</form>`,
+</form>
+<section class="pannello modulo-grande">
+  <h2>Password</h2>
+  <p><a class="btn" href="/profilo/password">Cambia la password</a></p>
+</section>`,
   });
 }
 

@@ -10,6 +10,7 @@ const express = require("express");
 const { caricaUtente } = require("./auth/permessi");
 const { rotteAccesso } = require("./routes/accesso");
 const { rottePagine } = require("./routes/pagine");
+const { rotteUtenti } = require("./routes/utenti");
 const { rotteScadenze } = require("./routes/scadenze");
 const { rotteNotifiche } = require("./routes/notifiche");
 const { paginaErrore } = require("./views/errore");
@@ -43,6 +44,7 @@ function creaApp(db) {
   // 5. Le rotte
   app.use(rotteAccesso(db));
   app.use(rottePagine(db));
+  app.use(rotteUtenti(db));
   app.use(rotteScadenze(db));
   app.use(rotteNotifiche(db));
 

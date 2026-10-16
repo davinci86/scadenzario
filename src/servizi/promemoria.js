@@ -32,12 +32,16 @@ const quando = (g) => (g === 0 ? "oggi" : g === 1 ? "domani" : `tra ${g} giorni`
 
 function generaPromemoria(db, giorno = oggi()) {
   const gestori = db.prepare("SELECT id FROM utenti WHERE attivo = 1 AND ruolo IN ('admin', 'editor')").all().map((u) => u.id);
+  // Chi è disattivato non riceve promemoria: se in squadra non resta nessuno
+  // di attivo, l'attività è trattata come "da assegnare".
+  const attivi = new Set(db.prepare("SELECT id FROM utenti WHERE attivo = 1").all().map((u) => u.id));
   let creati = 0;
 
   for (const s of elencoScadenze(db, {})) {
     const g = giorniDaOggi(s.data, giorno);
-    const orfana = s.squadra.length === 0;
-    const destinatari = orfana ? gestori : s.squadra.map((p) => p.id);
+    const squadraAttiva = s.squadra.filter((p) => attivi.has(p.id));
+    const orfana = squadraAttiva.length === 0;
+    const destinatari = orfana ? gestori : squadraAttiva.map((p) => p.id);
     const prima = orfana ? "Da assegnare · " : "";
     const invia = (testo, chiave, perEmail) => {
       const ricevuta = notifica(db, { utenti: destinatari, scadenzaId: s.id, testo: prima + testo, tipo: "promemoria", chiave });
@@ -58,7 +62,7 @@ function generaPromemoria(db, giorno = oggi()) {
 
     if (g < 0) {
       // Scaduta: avviso al referente (o ai gestori, se non c'è nessuno)
-      const a = orfana ? gestori : [s.referente_id ?? s.squadra[0].id];
+      const a = orfana ? gestori : [attivi.has(s.referente_id) ? s.referente_id : squadraAttiva[0].id];
       const ricevuta = notifica(db, { utenti: a, scadenzaId: s.id, tipo: "promemoria", chiave: `scaduta@${s.id}@${s.data}`,
         testo: `${prima}Scaduta da ${-g} ${-g === 1 ? "giorno" : "giorni"}, stato ancora «${s.stato}»` });
       for (const id of ricevuta) accodaEmail(db, id, `Hai una scadenza superata del ${formatta(s.data)} non ancora chiusa.`);

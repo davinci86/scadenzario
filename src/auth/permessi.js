@@ -40,6 +40,11 @@ function richiediAccesso(req, res, next) {
     return res.redirect("/login" + (leggiCookie(req) ? "?scaduta=1" : ""));
   }
   if (fermaSeBloccata(req, res)) return;
+  // Password provvisoria (data dall'Admin): prima di tutto se ne sceglie una propria
+  if (req.utente.cambiaPassword && req.path !== "/profilo/password") {
+    if (vuoleJson(req)) return res.status(403).json({ cambiaPassword: true });
+    return res.redirect("/profilo/password");
+  }
   next();
 }
 

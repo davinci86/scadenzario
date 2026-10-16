@@ -40,6 +40,9 @@ function aggiornaTabelle(db) {
   // Dalla Tappa 3: blocco dello schermo
   aggiungi("sessioni", "bloccata", "INTEGER NOT NULL DEFAULT 0");
   aggiungi("sessioni", "tentativi_sblocco", "INTEGER NOT NULL DEFAULT 0");
+  // Gestione utenti: password provvisoria da cambiare, utenti eliminati
+  aggiungi("utenti", "cambia_password", "INTEGER NOT NULL DEFAULT 0"); // 1 = deve sceglierne una nuova
+  aggiungi("utenti", "eliminato", "INTEGER"); // quando è stato eliminato (vuoto = no)
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,
