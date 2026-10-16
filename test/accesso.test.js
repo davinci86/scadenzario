@@ -88,12 +88,18 @@ test("l'admin apre la pagina degli utenti", async (t) => {
   assert.match(await risposta.text(), /Dott\. Luca Romano/);
 });
 
-test("l'admin apre il registro e vede gli accessi; gli altri no", async (t) => {
+test("registro: niente accessi e uscite (a richiesta sì), tentativi falliti sempre; solo Admin", async (t) => {
   const { indirizzo } = await avviaApp(t);
   const { cookie } = await accedi(indirizzo, "a.ferrara", "demo");
   const risposta = await apri(indirizzo, "/admin/registro", cookie);
   assert.equal(risposta.status, 200);
-  assert.match(await risposta.text(), /Accesso/);
+  // Di solito accessi e uscite non si vedono (riempirebbero il registro)…
+  assert.equal(/<span class="etichetta">Accesso<\/span>/.test(await risposta.text()), false);
+  // …ma si possono mostrare
+  assert.match(await (await apri(indirizzo, "/admin/registro?accessi=1", cookie)).text(), /<span class="etichetta">Accesso<\/span>/);
+  // Un tentativo sbagliato si vede sempre
+  await accedi(indirizzo, "l.romano", "sbagliata");
+  assert.match(await (await apri(indirizzo, "/admin/registro", cookie)).text(), /Accesso fallito/);
   const editor = await accedi(indirizzo, "p.russo", "demo");
   assert.equal((await apri(indirizzo, "/admin/registro", editor.cookie)).status, 403);
 });

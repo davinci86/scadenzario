@@ -162,7 +162,7 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
 </form>` });
 }
 
-function paginaRegistro(utente, attivita, email = [], smtpConfigurato = false) {
+function paginaRegistro(utente, attivita, email = [], smtpConfigurato = false, conAccessi = false) {
   return layout({
     titolo: "Registro",
     utente,
@@ -171,6 +171,9 @@ function paginaRegistro(utente, attivita, email = [], smtpConfigurato = false) {
 <h1>Registro</h1>
 <section class="pannello">
   <h2>Ultime attività</h2>
+  <p class="nota">${conAccessi
+    ? `Sono inclusi accessi e uscite. <a href="/admin/registro">Nascondili</a>`
+    : `Accessi e uscite non sono mostrati (gli orari del giorno sono in <a href="/ingressi">Ingressi</a>); i tentativi falliti sì. <a href="/admin/registro?accessi=1">Mostra anche accessi e uscite</a>`}</p>
   <table class="semplice">
     <thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettaglio</th></tr></thead>
     <tbody>${

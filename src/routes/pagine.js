@@ -113,7 +113,8 @@ function rottePagine(db) {
 
   // Registro (attività ed email in uscita): solo per l'Admin.
   router.get("/admin/registro", richiediRuolo("admin"), (req, res) => {
-    res.send(paginaRegistro(req.utente, ultimeAttivita(db, 50), ultimeEmail(db, 15), !!config.email.host));
+    const conAccessi = req.query.accessi === "1";
+    res.send(paginaRegistro(req.utente, ultimeAttivita(db, 100, { conAccessi }), ultimeEmail(db, 15), !!config.email.host, conAccessi));
   });
 
   return router;
