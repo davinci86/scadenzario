@@ -77,7 +77,7 @@ function paginaUtente(utente, persona, { valori, errori = [], fatto = "", aperte
       : `<div class="radios">${Object.entries(DESCRIZIONE_RUOLI).map(([k, d]) =>
           `<label class="radio"><input type="radio" name="ruolo" value="${k}"${ruolo === k ? " checked" : ""} required><span><b>${RUOLI[k]}</b> ${esc(d)}</span></label>`).join("")}</div>`}
   </fieldset>
-  <div class="campo"><label class="scelta"><input type="checkbox" name="titolare" value="1"${titolare ? " checked" : ""}> Titolare <span class="nota">· vede il registro degli ingressi</span></label></div>
+  <div class="campo"><label class="radio"><input type="checkbox" name="titolare" value="1"${titolare ? " checked" : ""}><span><b>Titolare</b> Vede il registro degli ingressi (si aggiunge al ruolo).</span></label></div>
   <div class="campo"><label for="email">Email per i promemoria <span class="facoltativo">(facoltativa)</span></label>
     <input id="email" name="email" type="email" value="${v("email")}" maxlength="200" placeholder="nome@studio.it"></div>
   ${nuovo ? `
@@ -127,7 +127,7 @@ ${dati}` });
   <p>Per chi ha lasciato lo studio. Non potrà più entrare e sparisce dagli elenchi, ma <b>il suo nome resta</b> nello storico, nelle note e nel registro: si saprà sempre chi ha fatto cosa. Email e password vengono cancellate. <b>Non si può annullare.</b></p>
   ${aperte.length ? `<p class="avviso">Verrà tolto dalla squadra di <b>${aperte.length}</b> attività aperte (lo storico lo annota). Quelle in cui resta senza nessuno diventano «Da assegnare».</p>${elencoAperte}` : ""}
   <form method="post" action="${url}/elimina" class="modulo" data-nome="Elimina utente">
-    <label class="scelta"><input type="checkbox" name="conferma" value="1" required> Confermo: elimina ${esc(persona.nome)}</label>
+    <label class="radio"><input type="checkbox" name="conferma" value="1" required><span>Confermo: elimina <b>${esc(persona.nome)}</b></span></label>
     <div><button class="btn pericolo">Elimina l'utente</button></div>
   </form>
 </section>`;

@@ -65,6 +65,13 @@ function rottePagine(db) {
     tornaIndietro(req, res);
   });
 
+  // Menu laterale compresso o aperto: anche questa è una preferenza personale.
+  // La chiama menu.js dietro le quinte (il menu cambia subito, senza ricaricare).
+  router.post("/preferenze/menu", richiediAccesso, (req, res) => {
+    db.prepare("UPDATE utenti SET menu_compresso = ? WHERE id = ?").run(req.body?.compresso === "1" ? 1 : 0, req.utente.id);
+    res.json({ ok: true });
+  });
+
   // Il browser segnala che la persona sta usando la pagina (mouse, tastiera):
   // basta passare dal "portiere" per aggiornare l'ultima attività.
   router.post("/api/attivita", richiediAccesso, (req, res) => res.json({ ok: true }));

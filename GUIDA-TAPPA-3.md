@@ -147,4 +147,22 @@ modifiche non salvate. Si controllano solo i moduli che salvano (`method="post"`
   Per questo, dopo ogni azione, la scheda si ricarica con `location.replace`: non allunga
   la cronologia e la chiusura resta possibile.
 
+## Aggiunta: gestione degli utenti e menu laterale
+
+**Da provare (come Admin):**
+1. Menu **Utenti** → **+ Nuovo utente**: compila e dai una password provvisoria.
+   Esci ed entra con il nuovo utente: prima di tutto ti chiede di sceglierne una tua.
+2. Apri un utente: puoi cambiargli nome, ruolo, email, titolare; dargli una nuova
+   password provvisoria; **disattivarlo** (reversibile) o **eliminarlo** (definitivo).
+3. Prova a toglierti il ruolo di Admin o a disattivarti: il server non lo permette.
+4. Premi **Comprimi** in fondo al menu: restano le icone. Fermati 3 secondi su
+   un'icona e compare il nome. La scelta resta salvata nel tuo profilo.
+
+**Eliminare non cancella.** In `src/db/utenti.js` vedi che la riga dell'utente resta:
+storico, note e registro puntano a lei, e devono continuare a dire chi ha fatto cosa.
+Si cancellano solo email e password, e il nome utente torna libero.
+
+**Da cambiare tu:** in `public/js/menu.js` la riga `ATTESA_ETICHETTA = 3000` decide dopo
+quanti millisecondi compare il nome delle icone.
+
 **Prossima tappa:** segnalazioni ai colleghi e movimenti dei fascicoli.

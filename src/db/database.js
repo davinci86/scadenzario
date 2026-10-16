@@ -43,6 +43,8 @@ function aggiornaTabelle(db) {
   // Gestione utenti: password provvisoria da cambiare, utenti eliminati
   aggiungi("utenti", "cambia_password", "INTEGER NOT NULL DEFAULT 0"); // 1 = deve sceglierne una nuova
   aggiungi("utenti", "eliminato", "INTEGER"); // quando è stato eliminato (vuoto = no)
+  // Menu laterale compresso (solo icone): preferenza personale
+  aggiungi("utenti", "menu_compresso", "INTEGER NOT NULL DEFAULT 0");
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,
