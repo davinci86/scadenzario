@@ -4,9 +4,9 @@
 // • Clic su una scadenza (riga della tabella o voce della dashboard):
 //   si apre il pannello che scorre da destra, sopra la pagina.
 // • Doppio clic: si apre la pagina intera, SEMPRE in una nuova scheda.
-// • "+ Nuova scadenza": il modulo si apre in una finestra sovrapposta.
-// • "Segnala a un collega": anche lui in una finestra sovrapposta, ma
-//   "fissa": si chiude solo con la × o inviando (non con Esc o clic fuori).
+// • "+ Nuova scadenza" e "Segnala a un collega": il modulo si apre in una
+//   finestra sovrapposta "fissa": si chiude solo con la × o salvando
+//   (non con Esc né cliccando fuori, così non si perde un lavoro a metà).
 //
 // Le azioni fatte nel pannello (stato, note, squadra…) vengono inviate
 // al server "dietro le quinte" (fetch), senza cambiare pagina: poi il
@@ -267,7 +267,7 @@ document.addEventListener("click", (evento) => {
   }
   if (evento.target.closest("[data-nuova]")) {
     evento.preventDefault();
-    return apriFinestra("/scadenze/nuova", { titolo: "Nuova scadenza" });
+    return apriFinestra("/scadenze/nuova", { titolo: "Nuova scadenza", fissa: true });
   }
   const segnala = evento.target.closest("a[data-segnala]");
   if (segnala && !(evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.button !== 0)) {

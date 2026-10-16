@@ -13,7 +13,8 @@ di prova (dati inventati).
 3. **+ Segnala a un collega**: si apre una finestra sopra la pagina. Scegli uno o più
    destinatari, oggetto, messaggio, priorità; puoi collegarla a una scadenza o a un
    fascicolo. La finestra si chiude **solo con la ×** o inviando: il clic fuori e il
-   tasto Esc non la chiudono, così non si perde un messaggio a metà. Se hai scritto
+   tasto Esc non la chiudono, così non si perde un messaggio a metà. Vale lo stesso
+   per «+ Nuova scadenza». Se hai scritto
    qualcosa e premi la ×, l'app ti chiede se salvarlo.
 4. **Rispondi** apre il modulo già indirizzato a chi te l'ha mandata.
 5. Apri **Registro**: c'è «Inviata a…» e «Letta…», ma mai il testo.

@@ -126,7 +126,7 @@ function rotteScadenze(db) {
   // ── Nuova scadenza ──
   router.get("/scadenze/nuova", richiediAccesso, (req, res) => {
     if (!puoModificare(req.utente)) return vietato(req, res);
-    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db)));
+    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db), {}, [], { inFinestra: true }));
     res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db)));
   });
 
@@ -135,7 +135,7 @@ function rotteScadenze(db) {
     const esito = leggiNuovaScadenza(db, req.body ?? {});
     if (esito.errori) {
       const modulo = parziale(req)
-        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori)
+        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { inFinestra: true })
         : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori);
       return res.status(400).send(modulo);
     }

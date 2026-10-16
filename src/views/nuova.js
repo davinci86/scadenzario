@@ -9,7 +9,8 @@ const { TIPI, EVENTI } = require("../dominio/stati");
 const config = require("../config");
 
 // Solo il modulo: si usa nella finestra sovrapposta e nella pagina.
-function moduloNuova(atti, utenti, valori = {}, errori = []) {
+// inFinestra: nella finestra sovrapposta non c'è «Annulla» (si chiude con la ×)
+function moduloNuova(atti, utenti, valori = {}, errori = [], { inFinestra = false } = {}) {
   const v = (campo) => esc(valori[campo] ?? "");
   const tipo = TIPI[valori.tipo] ? valori.tipo : "scadenza";
   const squadraScelta = new Set([].concat(valori.squadra ?? []).map(String));
@@ -79,7 +80,7 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
     </div>
   </fieldset>
 
-  <div class="azioni"><a class="btn" href="/scadenzario" data-chiudi>Annulla</a><button class="btn pri" type="submit">Inserisci nello scadenzario</button></div>
+  <div class="azioni">${inFinestra ? "" : `<a class="btn" href="/scadenzario">Annulla</a>`}<button class="btn pri" type="submit">Inserisci nello scadenzario</button></div>
 </form>`;
 }
 
