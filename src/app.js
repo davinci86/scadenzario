@@ -13,6 +13,7 @@ const { rottePagine } = require("./routes/pagine");
 const { rotteUtenti } = require("./routes/utenti");
 const { rotteSegnalazioni } = require("./routes/segnalazioni");
 const { rotteFascicoli } = require("./routes/fascicoli");
+const { rotteBackup } = require("./routes/backup");
 const { rotteScadenze } = require("./routes/scadenze");
 const { rotteNotifiche } = require("./routes/notifiche");
 const { paginaErrore } = require("./views/errore");
@@ -49,6 +50,7 @@ function creaApp(db) {
   app.use(rotteUtenti(db));
   app.use(rotteSegnalazioni(db));
   app.use(rotteFascicoli(db));
+  app.use(rotteBackup(db));
   app.use(rotteScadenze(db));
   app.use(rotteNotifiche(db));
 

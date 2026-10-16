@@ -34,6 +34,12 @@ async function lavoriProgrammati() {
 lavoriProgrammati();
 setInterval(lavoriProgrammati, config.minutiControlloPromemoria * 60_000);
 
+// ── Backup programmati: ogni 10 minuti (solo se qualcosa è cambiato),
+//    più il giornaliero e il mensile. Vedi src/servizi/backup.js.
+const { backupProgrammati } = require("./servizi/backup");
+backupProgrammati(db);
+setInterval(() => backupProgrammati(db), config.backup.minutiControllo * 60_000);
+
 creaApp(db).listen(config.porta, () => {
   console.log(`Scadenzario avviato: apri http://localhost:${config.porta}`);
   console.log("Per fermarlo premi Ctrl + C");

@@ -35,6 +35,22 @@ module.exports = {
   // chi ha un fascicolo riceve un promemoria per rimetterlo a posto.
   giorniFascicoloFuori: 30,
 
+  // Backup (dalla Tappa 5). Vedi src/servizi/backup.js.
+  backup: {
+    // Dove si salvano le copie sul server…
+    cartella: process.env.BACKUP_CARTELLA ||
+      path.join(path.dirname(process.env.DB_PATH || path.join(__dirname, "..", "dati", "scadenzario.db")), "backup"),
+    // …e la seconda copia sul NAS (es. \\NAS\Scadenzario). Vuota = nessuna copia sul NAS.
+    cartellaNas: process.env.BACKUP_NAS || "",
+    // Ogni quanti minuti si controlla se fare un backup (solo se qualcosa è cambiato)
+    minutiControllo: 10,
+    // Il backup giornaliero si fa dopo quest'ora (o appena il server riparte, se l'ha saltato)
+    oraGiornaliero: 21,
+    // Per quanti giorni si tiene ogni tipo di backup (0 = per sempre).
+    // Sono i valori iniziali: l'Admin li cambia dalla pagina Backup.
+    giorniDaTenere: { auto: 3, giornaliero: 90, mensile: 0, manuale: 365, "prima-del-ripristino": 365 },
+  },
+
   // Email: si configura sul server dello studio con le variabili d'ambiente.
   // Finché SMTP_HOST è vuoto, le email restano "in coda" e non partono.
   email: {

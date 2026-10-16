@@ -470,3 +470,9 @@ details.pannello summary { cursor: pointer; }
 .finestra-contenuto .titolo-finestra { padding-right: 44px; }
 .avviso-volante { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; background: var(--testo); color: var(--carta);
   padding: 10px 16px; border-radius: 8px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+
+/* ── Backup ── */
+.numero-corto { width: 90px; }
+.etichetta.errore-etichetta { background: var(--errore-tenue); color: var(--rosso); }
+td.diverso { background: var(--ambra-tenue); font-weight: 700; }
+.dati dd .nota { overflow-wrap: anywhere; }

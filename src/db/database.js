@@ -47,6 +47,37 @@ function aggiornaTabelle(db) {
   aggiungi("utenti", "menu_compresso", "INTEGER NOT NULL DEFAULT 0");
   // Dalla Tappa 4: una notifica può portare a una pagina (segnalazioni, fascicoli)
   aggiungi("notifiche", "link", "TEXT");
+  // Dalla Tappa 5: per quanti giorni tenere ogni tipo di backup (lo decide l'Admin)
+  db.exec("CREATE TABLE IF NOT EXISTS impostazioni_backup (tipo TEXT PRIMARY KEY, giorni INTEGER NOT NULL)");
+  // Dalla Tappa 5: il contatore delle modifiche (vedi sotto)
+  contaModifiche(db);
+}
+
+// ── Il contatore delle modifiche (serve ai backup) ──────────
+// Un numero che sale di 1 a ogni modifica dei dati "veri" (scadenze,
+// utenti, fascicoli…). Lo fanno dei "trigger": piccole regole che SQLite
+// esegue da solo dopo ogni INSERT, UPDATE o DELETE su una tabella.
+// Il backup automatico confronta il numero con quello dell'ultimo
+// backup: se è uguale, non è cambiato niente e il backup non serve.
+// Registro, sessioni, email in coda, presenze e impostazioni dei backup
+// non contano: non tornano indietro con un ripristino.
+const NON_NEI_BACKUP = ["registro", "sessioni", "email", "presenze", "modifiche", "impostazioni_backup"];
+
+function contaModifiche(db) {
+  db.exec(`CREATE TABLE IF NOT EXISTS modifiche (id INTEGER PRIMARY KEY CHECK (id = 1), n INTEGER NOT NULL);
+           INSERT OR IGNORE INTO modifiche (id, n) VALUES (1, 0);`);
+  for (const t of tabelleDeiDati(db)) {
+    for (const op of ["INSERT", "UPDATE", "DELETE"]) {
+      db.exec(`CREATE TRIGGER IF NOT EXISTS conta_${t}_${op.toLowerCase()} AFTER ${op} ON ${t}
+               BEGIN UPDATE modifiche SET n = n + 1 WHERE id = 1; END;`);
+    }
+  }
+}
+
+// Le tabelle con i dati "veri": tutte tranne quelle escluse
+function tabelleDeiDati(db, schema = "main") {
+  return db.prepare(`SELECT name FROM ${schema}.sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name`)
+    .all().map((r) => r.name).filter((t) => !NON_NEI_BACKUP.includes(t));
 }
 
 // Crea le tabelle se non esistono ancora. "IF NOT EXISTS" fa sì che,
@@ -227,4 +258,4 @@ function creaTabelle(db) {
   `);
 }
 
-module.exports = { apriDatabase };
+module.exports = { apriDatabase, tabelleDeiDati, NON_NEI_BACKUP };

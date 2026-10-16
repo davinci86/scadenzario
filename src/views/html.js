@@ -22,6 +22,7 @@ const ICONE = {
   registro: '<path d="M6 3h11.5A1.5 1.5 0 0 1 19 4.5V21H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1Z"/><path d="M5 19a2 2 0 0 1 2-2h12M9 7.5h6M9 11h6"/>',
   segnalazioni: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z"/><path d="M12 7.5v3.5M12 13.5h.01"/>',
   fascicoli: '<path d="M3 7.5V18a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V9a1.5 1.5 0 0 0-1.5-1.5H12l-2-2.5H4.5A1.5 1.5 0 0 0 3 6.5z"/><path d="M8 13h8"/>',
+  backup: '<ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-6M4.5 11.5v6c0 1.5 3.4 2.8 7.5 2.8"/><path d="M17.5 15.5v5M15 18l2.5 2.5L20 18"/>',
   comprimi: '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
 };
 const icona = (nome) =>
@@ -33,7 +34,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
   const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"],
     ["/segnalazioni", "Segnalazioni", "segnalazioni"], ["/fascicoli", "Fascicoli", "fascicoli"]];
   if (utente && (utente.ruolo === "admin" || utente.titolare)) voci.push(["/ingressi", "Ingressi", "ingressi"]);
-  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"]);
+  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"], ["/admin/backup", "Backup", "backup"]);
 
   // Il menu laterale. Da compresso si vedono solo le icone: il nome compare
   // fermandosi sopra con il mouse (vedi public/js/menu.js).
