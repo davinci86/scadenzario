@@ -31,7 +31,7 @@ Prove da fare:
    dopo un minuto lo schermo si blocca da solo.
 5. **Ingressi** (lo vedono l'Admin e i titolari, cioè De Luca nei dati di prova): chi è entrato
    oggi e quando. Premi **Esci** e rientra: l'uscita compare nel registro.
-6. Come **Admin**, in "Utenti e registro": assegna o togli la qualifica di **titolare**;
+6. Come **Admin**, in "Registro": assegna o togli la qualifica di **titolare**;
    in fondo c'è la coda delle **email in uscita**.
 
 ---

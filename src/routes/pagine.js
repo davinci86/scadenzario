@@ -108,7 +108,7 @@ function rottePagine(db) {
     res.redirect("/admin/utenti");
   });
 
-  // Utenti e registro: solo per l'Admin.
+  // Registro (utenti, email, attività): solo per l'Admin.
   router.get("/admin/utenti", richiediRuolo("admin"), (req, res) => {
     const utenti = db
       .prepare("SELECT id, nome_utente, nome, titolo, ruolo, attivo, bloccato_fino, titolare, email FROM utenti ORDER BY id")

@@ -15,7 +15,7 @@ const RUOLI = { admin: "Admin", editor: "Editor", collab: "Collaboratore" };
 function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
   const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"]];
   if (utente && (utente.ruolo === "admin" || utente.titolare)) voci.push(["/ingressi", "Ingressi", "ingressi"]);
-  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti e registro", "utenti"]);
+  if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Registro", "utenti"]);
 
   const menu = utente
     ? `<nav class="nav">${voci

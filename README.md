@@ -39,4 +39,4 @@ Ogni tappa ha la sua guida: `GUIDA-TAPPA-1.md`, `GUIDA-TAPPA-2.md`, `GUIDA-TAPPA
 
 I promemoria via email partono solo se è configurato un server di posta, con le
 variabili d'ambiente `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
-Finché non c'è, le email restano in coda (visibili all'Admin in "Utenti e registro").
+Finché non c'è, le email restano in coda (visibili all'Admin in "Registro").

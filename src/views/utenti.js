@@ -6,11 +6,11 @@ const { formattaMomento } = require("../dominio/date");
 
 function paginaUtenti(utente, utenti, attivita, email = [], smtpConfigurato = false) {
   return layout({
-    titolo: "Utenti e registro",
+    titolo: "Registro",
     utente,
     attiva: "utenti",
     contenuto: `
-<h1>Utenti e registro</h1>
+<h1>Registro</h1>
 <section class="pannello">
   <h2>Utenti</h2>
   <table class="semplice">
