@@ -1,18 +1,20 @@
-// Pagina riservata all'Admin: utenti (con la qualifica di titolare),
-// ultime attività ed email in uscita.
-// (Dalla Tappa 5 diventerà la sezione Impostazioni completa.)
+// ─────────────────────────────────────────────────────────────
+// PAGINE RISERVATE ALL'ADMIN
+// • Utenti:   chi può entrare, con quale ruolo, la qualifica di titolare.
+// • Registro: cosa è successo (attività) e le email in uscita.
+// Sono due cose diverse, quindi due pagine e due voci di menu.
+// ─────────────────────────────────────────────────────────────
 const { esc, layout, RUOLI } = require("./html");
 const { formattaMomento } = require("../dominio/date");
 
-function paginaUtenti(utente, utenti, attivita, email = [], smtpConfigurato = false) {
+function paginaUtenti(utente, utenti) {
   return layout({
-    titolo: "Registro",
+    titolo: "Utenti",
     utente,
     attiva: "utenti",
     contenuto: `
-<h1>Registro</h1>
+<h1>Utenti</h1>
 <section class="pannello">
-  <h2>Utenti</h2>
   <table class="semplice">
     <thead><tr><th>Persona</th><th>Nome utente</th><th>Ruolo</th><th>Titolare</th><th>Email</th><th>Stato</th></tr></thead>
     <tbody>${utenti
@@ -24,18 +26,17 @@ function paginaUtenti(utente, utenti, attivita, email = [], smtpConfigurato = fa
       .join("")}</tbody>
   </table>
   <p class="nota spazio-sopra">La qualifica di titolare si aggiunge al ruolo: permette di vedere il registro degli ingressi.</p>
-</section>
-<section class="pannello">
-  <h2>Email in uscita</h2>
-  ${smtpConfigurato ? "" : `<p class="avviso">Il server di posta non è ancora configurato: le email restano in coda e partiranno quando lo sarà.</p>`}
-  <table class="semplice">
-    <thead><tr><th>Creata</th><th>A</th><th>Testo</th><th>Stato</th></tr></thead>
-    <tbody>${email.length ? email.map((m) => `<tr><td>${formattaMomento(m.creata)}</td><td>${esc(m.nome)}<br><span class="nota">${esc(m.destinatario)}</span></td>
-      <td class="testo-email">${esc(m.testo.split("\n")[0])}</td>
-      <td>${m.inviata ? "Inviata " + formattaMomento(m.inviata) : m.errore ? `<span class="etichetta attenzione">Errore</span> ${esc(m.errore)}` : "In coda"}</td></tr>`).join("")
-      : `<tr><td colspan="4" class="nota">Nessuna email.</td></tr>`}</tbody>
-  </table>
-</section>
+</section>`,
+  });
+}
+
+function paginaRegistro(utente, attivita, email = [], smtpConfigurato = false) {
+  return layout({
+    titolo: "Registro",
+    utente,
+    attiva: "registro",
+    contenuto: `
+<h1>Registro</h1>
 <section class="pannello">
   <h2>Ultime attività</h2>
   <table class="semplice">
@@ -49,8 +50,19 @@ function paginaUtenti(utente, utenti, attivita, email = [], smtpConfigurato = fa
         : `<tr><td colspan="4" class="nota">Nessuna attività.</td></tr>`
     }</tbody>
   </table>
+</section>
+<section class="pannello">
+  <h2>Email in uscita</h2>
+  ${smtpConfigurato ? "" : `<p class="avviso">Il server di posta non è ancora configurato: le email restano in coda e partiranno quando lo sarà.</p>`}
+  <table class="semplice">
+    <thead><tr><th>Creata</th><th>A</th><th>Testo</th><th>Stato</th></tr></thead>
+    <tbody>${email.length ? email.map((m) => `<tr><td>${formattaMomento(m.creata)}</td><td>${esc(m.nome)}<br><span class="nota">${esc(m.destinatario)}</span></td>
+      <td class="testo-email">${esc(m.testo.split("\n")[0])}</td>
+      <td>${m.inviata ? "Inviata " + formattaMomento(m.inviata) : m.errore ? `<span class="etichetta attenzione">Errore</span> ${esc(m.errore)}` : "In coda"}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="nota">Nessuna email.</td></tr>`}</tbody>
+  </table>
 </section>`,
   });
 }
 
-module.exports = { paginaUtenti };
+module.exports = { paginaUtenti, paginaRegistro };

@@ -80,14 +80,22 @@ test("un editor non può aprire la pagina degli utenti", async (t) => {
   assert.equal(risposta.status, 403);
 });
 
-test("l'admin apre la pagina degli utenti e vede gli accessi nel registro", async (t) => {
+test("l'admin apre la pagina degli utenti", async (t) => {
   const { indirizzo } = await avviaApp(t);
   const { cookie } = await accedi(indirizzo, "a.ferrara", "demo");
   const risposta = await apri(indirizzo, "/admin/utenti", cookie);
   assert.equal(risposta.status, 200);
-  const html = await risposta.text();
-  assert.match(html, /Dott\. Luca Romano/);
-  assert.match(html, /Accesso/);
+  assert.match(await risposta.text(), /Dott\. Luca Romano/);
+});
+
+test("l'admin apre il registro e vede gli accessi; gli altri no", async (t) => {
+  const { indirizzo } = await avviaApp(t);
+  const { cookie } = await accedi(indirizzo, "a.ferrara", "demo");
+  const risposta = await apri(indirizzo, "/admin/registro", cookie);
+  assert.equal(risposta.status, 200);
+  assert.match(await risposta.text(), /Accesso/);
+  const editor = await accedi(indirizzo, "p.russo", "demo");
+  assert.equal((await apri(indirizzo, "/admin/registro", editor.cookie)).status, 403);
 });
 
 test("dopo 5 tentativi sbagliati l'utente è bloccato, anche con la password giusta", async (t) => {

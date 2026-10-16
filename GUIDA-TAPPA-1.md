@@ -17,7 +17,7 @@ i ruoli e il registro degli accessi. Tutto il resto poggerà su queste fondament
 Prove da fare:
 
 - Entra con una password sbagliata: compare l'errore.
-- Entra come **Admin** (a.ferrara): nel menu c'è "Registro", con i tuoi accessi registrati.
+- Entra come **Admin** (a.ferrara): nel menu ci sono "Utenti" (chi può entrare) e "Registro" (i tuoi accessi registrati).
 - Esci ed entra come **Collaboratore** (m.deluca): la voce non c'è. Prova a scrivere a mano
   l'indirizzo `http://localhost:3000/admin/utenti`: l'app risponde "Accesso non consentito".
 - Sbaglia la password 5 volte con `g.esposito`: l'utente si blocca per 15 minuti

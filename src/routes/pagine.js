@@ -7,7 +7,7 @@ const express = require("express");
 const { richiediAccesso, richiediRuolo } = require("../auth/permessi");
 const { ultimeAttivita } = require("../db/registro");
 const { paginaDashboard } = require("../views/dashboard");
-const { paginaUtenti } = require("../views/utenti");
+const { paginaUtenti, paginaRegistro } = require("../views/utenti");
 const { elencoScadenze, utentiAttivi } = require("../db/scadenze");
 const { giorniDaOggi } = require("../dominio/date");
 const { puoModificare, eAdmin, vedeIngressi } = require("../auth/regole");
@@ -108,12 +108,17 @@ function rottePagine(db) {
     res.redirect("/admin/utenti");
   });
 
-  // Registro (utenti, email, attività): solo per l'Admin.
+  // Utenti: solo per l'Admin.
   router.get("/admin/utenti", richiediRuolo("admin"), (req, res) => {
     const utenti = db
       .prepare("SELECT id, nome_utente, nome, titolo, ruolo, attivo, bloccato_fino, titolare, email FROM utenti ORDER BY id")
       .all();
-    res.send(paginaUtenti(req.utente, utenti, ultimeAttivita(db, 30), ultimeEmail(db, 15), !!config.email.host));
+    res.send(paginaUtenti(req.utente, utenti));
+  });
+
+  // Registro (attività ed email in uscita): solo per l'Admin.
+  router.get("/admin/registro", richiediRuolo("admin"), (req, res) => {
+    res.send(paginaRegistro(req.utente, ultimeAttivita(db, 50), ultimeEmail(db, 15), !!config.email.host));
   });
 
   return router;
