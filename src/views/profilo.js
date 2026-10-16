@@ -16,7 +16,7 @@ function paginaProfilo(utente, { salvato = false, errori = [], valori = {} } = {
 <h1>Il mio profilo</h1>
 ${salvato ? `<p class="avviso">Preferenze salvate.</p>` : ""}
 ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}</div>` : ""}
-<form method="post" action="/profilo" class="pannello modulo-grande">
+<form method="post" action="/profilo" class="pannello modulo-grande" data-nome="Il mio profilo">
   <p><b>${esc(utente.nome)}</b> · ${esc(utente.nomeUtente)} · ${RUOLI[utente.ruolo]}${utente.titolare ? " · titolare" : ""}</p>
   <div class="campo">
     <label for="minuti_blocco">Blocca lo schermo dopo quanti minuti di inattività</label>

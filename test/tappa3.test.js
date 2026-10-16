@@ -60,8 +60,9 @@ test("il controllo automatico delle notifiche non conta come attività", async (
 test("la sessione finisce comunque la notte", async (t) => {
   const { db, indirizzo } = await avviaApp(t);
   const { cookie } = await accedi(indirizzo, "a.ferrara");
-  // Sessione nata ieri alle 10: la notte (alle 2:00) è passata
-  const ieri = new Date(); ieri.setDate(ieri.getDate() - 1); ieri.setHours(10, 0, 0, 0);
+  // Sessione nata due giorni fa alle 10: almeno una notte (alle 2:00) è passata.
+  // (Con "ieri" il test falliva se lanciato tra mezzanotte e le 2.)
+  const ieri = new Date(); ieri.setDate(ieri.getDate() - 2); ieri.setHours(10, 0, 0, 0);
   db.prepare("UPDATE sessioni SET creata = ?").run(ieri.getTime());
   const r = await apri(indirizzo, "/", cookie);
   assert.equal(r.status, 302);

@@ -61,7 +61,7 @@
       risposta = await fetch("/api/notifiche", { headers: { "X-Automatico": "1" } });
     } catch { return; } // server irraggiungibile: riproveremo
     if (risposta.status === 423) return window.mostraBlocco?.(false);
-    if (risposta.status === 401) return (location.href = "/login?scaduta=1");
+    if (risposta.status === 401) return window.modifiche.esci("/login?scaduta=1");
     if (!risposta.ok) return;
     ultimiDati = await risposta.json();
 

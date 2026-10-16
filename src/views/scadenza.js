@@ -38,7 +38,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
     ${stati.map((st) => `<button class="stato${st === s.stato ? " attuale" : ""}" name="stato" value="${esc(st)}"${lavora ? "" : " disabled"}${st === s.stato ? ' aria-pressed="true"' : ""}>${campione(st)}${esc(st)}</button>`).join("")}
   </form>
   ${s.tipo === "udienza" && lavora && !eChiuso(s.stato) ? `
-  <form method="post" action="${url}/rinvio" class="riquadro">
+  <form method="post" action="${url}/rinvio" class="riquadro" data-nome="Rinvio dell'udienza">
     <b>Udienza rinviata?</b> Indica la nuova data: verrà creata la nuova udienza con la stessa squadra.
     <div class="in-linea"><input type="date" name="data" required aria-label="Nuova data"><input type="time" name="ora" value="${esc(s.ora)}" aria-label="Ora"><button class="btn piccolo">Segna come rinviata</button></div>
   </form>` : ""}
@@ -128,6 +128,11 @@ ${avvisi}
 </div>`;
 }
 
+// "← Torna allo scadenzario": chiude la scheda e si torna a quella di prima
+// (il comportamento è in public/js/modifiche.js; senza JavaScript è un link normale)
+const tornaAlloScadenzario =
+  `<nav class="briciole" aria-label="Percorso"><a href="/scadenzario" data-torna><span aria-hidden="true">←</span> Torna allo scadenzario</a></nav>`;
+
 // La pagina intera (si apre con il doppio clic, sempre in una nuova scheda)
 function paginaScadenza(utente, s, extra) {
   return layout({
@@ -135,8 +140,8 @@ function paginaScadenza(utente, s, extra) {
     utente,
     attiva: "scadenzario",
     script: ["pannelli.js"],
-    contenuto: `<div data-dettaglio="${s.id}">${contenutoScadenza(utente, s, extra)}</div>`,
+    contenuto: `${tornaAlloScadenzario}<div data-dettaglio="${s.id}">${contenutoScadenza(utente, s, extra)}</div>`,
   });
 }
 
-module.exports = { paginaScadenza, contenutoScadenza };
+module.exports = { paginaScadenza, contenutoScadenza, tornaAlloScadenzario };

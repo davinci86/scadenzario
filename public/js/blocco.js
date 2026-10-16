@@ -34,6 +34,7 @@
     if (bloccato) return;
     bloccato = true;
     clearTimeout(timer);
+    window.modifiche.chiudiAvviso(); // l'avviso "modifiche non salvate" non resta sopra il velo
     if (avvisaServer) await fetch("/blocca", { method: "POST", headers: { "X-Parziale": "1" } }).catch(() => {});
     velo.hidden = false;
     errore.hidden = true;
@@ -49,7 +50,7 @@
       headers: { "X-Parziale": "1", "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ password: campo.value }),
     });
-    if (risposta.status === 401) return (location.href = "/login");
+    if (risposta.status === 401) return window.modifiche.esci("/login");
     if (!risposta.ok) {
       errore.textContent = (await risposta.json().catch(() => ({}))).errore || "Password non corretta.";
       errore.hidden = false;
@@ -67,6 +68,7 @@
     f.method = "post";
     f.action = "/logout";
     document.body.append(f);
+    window.modifiche.consentiUscita(); // uscita voluta: niente avviso del browser
     f.submit();
   });
 

@@ -24,7 +24,7 @@ function moduloNuova(atti, utenti, valori = {}, errori = []) {
   return `
 <h2 class="titolo-finestra">Nuova scadenza</h2>
 ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> ${errori.map(esc).join(" ")}</div>` : ""}
-<form method="post" action="/scadenze" class="pannello modulo-grande" id="nuova">
+<form method="post" action="/scadenze" class="pannello modulo-grande" id="nuova" data-nome="Nuova scadenza"${errori.length ? " data-non-salvato" : ""}>
 
   <fieldset class="campo">
     <legend>Tipo</legend>
@@ -84,13 +84,16 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
 }
 
 // La pagina intera (serve solo se JavaScript è spento)
+// Il link "← Torna allo scadenzario" è lo stesso della scheda di una scadenza
+const { tornaAlloScadenzario } = require("./scadenza");
+
 function paginaNuova(utente, atti, utenti, valori, errori) {
   return layout({
     titolo: "Nuova scadenza",
     utente,
     attiva: "scadenzario",
     script: ["nuova-scadenza.js"],
-    contenuto: moduloNuova(atti, utenti, valori, errori),
+    contenuto: tornaAlloScadenzario + moduloNuova(atti, utenti, valori, errori),
   });
 }
 

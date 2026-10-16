@@ -55,7 +55,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
 <body>
 ${utente ? `<header class="top"><div class="top-in"><a class="marchio" href="/">Scadenzario</a>${menu}</div></header>` : ""}
 <main>${contenuto}</main>
-${[...new Set(utente ? ["campanella.js", "blocco.js", ...script, "pannelli.js"] : script)].map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
+${[...new Set(utente ? ["modifiche.js", "campanella.js", "blocco.js", ...script, "pannelli.js"] : script)].map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
 </body>
 </html>`;
 }

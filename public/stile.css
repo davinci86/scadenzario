@@ -347,3 +347,17 @@ button.io-link:hover, button.io-link[aria-expanded="true"] { border-color: var(-
 .menu-utente a:hover, .menu-utente button:hover { background: var(--sfondo); }
 .menu-utente .esci { color: var(--accento); font-weight: 600; border-top: 1px solid var(--linea); border-radius: 0 0 6px 6px; margin-top: 4px; }
 kbd { font-family: var(--font-interfaccia); font-size: 11px; color: var(--tenue); border: 1px solid var(--linea); border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; background: var(--sfondo); }
+
+/* ── "← Torna allo scadenzario" ── */
+.briciole { margin: 0 0 14px; font-size: 14px; }
+.briciole a { color: var(--accento); font-weight: 600; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; }
+.briciole a:hover { text-decoration: underline; }
+
+/* ── Avviso "modifiche non salvate" ── */
+.avviso-modifiche { border: 0; border-radius: 12px; padding: 22px 24px; width: min(540px, calc(100vw - 32px));
+  background: var(--carta); color: var(--testo); box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.avviso-modifiche::backdrop { background: rgba(20, 20, 30, .45); }
+.avviso-modifiche h2 { font-family: var(--font-documento); font-size: 21px; margin: 0 0 8px; text-transform: none; letter-spacing: 0; color: var(--testo); }
+.avviso-modifiche ul { margin: 8px 0 12px; padding-left: 20px; }
+.avviso-modifiche li { font-weight: 600; }
+.scelte-avviso { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }

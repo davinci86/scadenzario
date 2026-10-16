@@ -121,4 +121,30 @@ si perde il lavoro. Ctrl+Alt+L non lo usa nessun browser. La scorciatoia è in
 `public/js/blocco.js` (cerca `KeyL`). Su Windows c'è anche **Win+L**, che blocca
 l'intero computer: va benissimo, ed è ancora più sicura.
 
+## Aggiunta: "Torna allo scadenzario" e modifiche non salvate
+
+**Da provare:**
+1. Doppio clic su una riga: si apre la scheda. In alto c'è **← Torna allo scadenzario**:
+   chiude la scheda e ti riporta a quella dello scadenzario (che intanto si è aggiornata
+   da sola con quello che hai fatto).
+2. Scrivi una nota senza salvarla e premi "Torna allo scadenzario", oppure chiudi il
+   pannello (×, Esc, clic fuori), oppure fai un'altra azione (es. cambia stato):
+   compare l'avviso **Ci sono modifiche non salvate** con *Salva e continua*,
+   *Continua senza salvare*, *Resta qui*.
+3. Con una nota non salvata chiudi la scheda dalla X del browser o premi "ricarica":
+   qui l'avviso è quello **del browser**.
+
+**Come funziona** (`public/js/modifiche.js`): ogni campo ricorda il valore con cui la
+pagina l'ha mostrato (`defaultValue`). Se quello attuale è diverso, il modulo ha
+modifiche non salvate. Si controllano solo i moduli che salvano (`method="post"`).
+
+**Due limiti dei browser, non nostri:**
+- Quando chiudi la scheda o ricarichi, il browser mostra il *suo* avviso: il testo non
+  si può cambiare e non può esserci il pulsante "Salva" (è una protezione dei browser
+  contro i siti che non ti lasciano andare via).
+- Una scheda si può chiudere da programma solo se l'ha aperta l'app. Se hai aperto
+  l'indirizzo a mano, "Torna allo scadenzario" porta allo scadenzario nella stessa scheda.
+  Per questo, dopo ogni azione, la scheda si ricarica con `location.replace`: non allunga
+  la cronologia e la chiusura resta possibile.
+
 **Prossima tappa:** segnalazioni ai colleghi e movimenti dei fascicoli.
