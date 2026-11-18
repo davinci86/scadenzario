@@ -44,7 +44,7 @@ function leggiSessione(db, token, { automatica = false } = {}) {
     .prepare(
       `SELECT s.token_hash, s.creata, s.ultima_attivita, s.bloccata,
               u.id, u.nome_utente, u.nome, u.titolo, u.ruolo, u.attivo, u.tema,
-              u.minuti_blocco, u.email, u.titolare, u.cambia_password, u.menu_compresso
+              u.minuti_blocco, u.email, u.titolare, u.cambia_password, u.menu_compresso, u.tutorial_visto
          FROM sessioni s JOIN utenti u ON u.id = s.utente_id
         WHERE s.token_hash = ?`
     )
@@ -81,6 +81,7 @@ function leggiSessione(db, token, { automatica = false } = {}) {
     email: riga.email,
     titolare: !!riga.titolare,
     menuCompresso: !!riga.menu_compresso,
+    tutorialVisto: !!riga.tutorial_visto,
     cambiaPassword: !!riga.cambia_password, // password provvisoria: deve sceglierne una sua
     // Quante segnalazioni deve ancora leggere (il numerino nel menu)
     segnalazioniDaLeggere: db.prepare("SELECT COUNT(*) AS n FROM segnalazioni_a WHERE utente_id = ? AND letta IS NULL").get(riga.id).n,

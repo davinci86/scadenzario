@@ -12,6 +12,7 @@ const { TIPI } = require("../dominio/stati");
 const { mancano, pillola } = require("./scadenze-comuni");
 const { schedaSegnalazione } = require("./segnalazioni");
 const { schedaFascicolo } = require("./fascicoli");
+const { segnapostoTutorial } = require("./tutorial");
 
 function saluto(ora = new Date().getHours()) {
   return ora < 13 ? "Buongiorno" : ora < 18 ? "Buon pomeriggio" : "Buonasera";
@@ -128,8 +129,8 @@ function paginaDashboard(utente, d) {
     titolo: "Dashboard",
     utente,
     attiva: "dash",
-    script: ["nuova-scadenza.js", "pannelli.js"],
-    contenuto: `<div data-aggiornabile>
+    script: ["nuova-scadenza.js", "pannelli.js", ...(d.tutorial ? ["tutorial.js"] : [])],
+    contenuto: `${d.tutorial ? segnapostoTutorial(utente) : ""}<div data-aggiornabile>
 <div class="testata-dash">
   <div><h1>${saluto()}, ${esc(nomeProprio)}</h1><p class="tenue">${formattaEsteso(oggi())} · ${RUOLI[utente.ruolo]}</p></div>
   <div class="contatori">${contatori}</div>

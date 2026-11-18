@@ -5,6 +5,7 @@
 // mostra solo i campi che servono e calcola l'anteprima mentre scrivi.
 // ─────────────────────────────────────────────────────────────
 const { esc, layout } = require("./html");
+const { aiuto } = require("./aiuti");
 const { TIPI, EVENTI } = require("../dominio/stati");
 const config = require("../config");
 
@@ -33,13 +34,13 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
   <input type="hidden" name="squadra_da_categoria" value="${valori.squadra_da_categoria === "0" ? "0" : "1"}">
 
   <fieldset class="campo">
-    <legend>Tipo</legend>
+    <legend>Tipo ${aiuto("tipo")}</legend>
     <div class="scelte">${Object.entries(TIPI).map(([k, nome]) =>
       `<label class="scelta"><input type="radio" name="tipo" value="${k}"${k === tipo ? " checked" : ""}> ${nome}</label>`).join("")}</div>
   </fieldset>
 
   <div class="campo" id="blocco-atto">
-    <label for="atto">Atto</label>
+    <div class="titolo-campo"><label for="atto">Atto</label>${aiuto("atto")}</div>
     <select id="atto" name="atto">
       <option value="">Scegli l'atto…</option>
       ${opzioniAtti}
@@ -49,12 +50,11 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
   </div>
 
   <div class="campo" id="blocco-categoria">
-    <label for="categoria">Categoria</label>
+    <div class="titolo-campo"><label for="categoria">Categoria</label>${aiuto("categoria")}</div>
     <select id="categoria" name="categoria">
       <option value="">Nessuna categoria</option>
       ${categorie.map((c) => `<option value="${esc(c)}"${valori.categoria === c ? " selected" : ""}>${esc(c)}</option>`).join("")}
     </select>
-    <p class="nota" id="nota-categoria">Per gli atti del catalogo la categoria è la materia dell'atto.</p>
   </div>
 
   <div class="due-colonne">
@@ -69,23 +69,23 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
   <div class="riquadro" id="blocco-altro">
     <p class="avviso">Atto fuori catalogo: la scadenza resterà <b>da verificare</b> finché l'Admin non controlla il termine.</p>
     <div class="due-colonne">
-      <div class="campo"><label for="termine_altro">Termine</label>
+      <div class="campo"><div class="titolo-campo"><label for="termine_altro">Termine</label>${aiuto("termineAltro")}</div>
         <select id="termine_altro" name="termine_altro">${terminiAltro.map((g) =>
           `<option value="${g}"${String(valori.termine_altro ?? 30) === String(g) ? " selected" : ""}>${g} giorni</option>`).join("")}
           <option value="manuale"${valori.termine_altro === "manuale" ? " selected" : ""}>Forza la data a mano…</option>
         </select></div>
-      <label class="spunta" id="blocco-feriale"><input type="checkbox" name="feriale_altro" value="1"${ferialeAltro ? " checked" : ""}> Si applica la sospensione feriale (1–31 agosto)</label>
+      <label class="spunta" id="blocco-feriale"><input type="checkbox" name="feriale_altro" value="1"${ferialeAltro ? " checked" : ""}> Si applica la sospensione feriale (1–31 agosto) ${aiuto("feriale")}</label>
     </div>
   </div>
 
   <div class="due-colonne">
-    <div class="campo" id="blocco-evento"><label for="data_evento" id="etichetta-evento">Data di decorrenza</label><input type="date" id="data_evento" name="data_evento" value="${v("data_evento")}"></div>
+    <div class="campo" id="blocco-evento"><div class="titolo-campo"><label for="data_evento" id="etichetta-evento">Data di decorrenza</label>${aiuto("decorrenza")}</div><input type="date" id="data_evento" name="data_evento" value="${v("data_evento")}"></div>
     <div class="campo" id="blocco-data"><label for="data" id="etichetta-data">Data</label><div class="in-linea"><input type="date" id="data" name="data" value="${v("data")}"><input type="time" id="ora" name="ora" value="${v("ora")}" aria-label="Ora"></div></div>
   </div>
   <div class="anteprima" id="anteprima" hidden></div>
 
   <fieldset class="campo">
-    <legend>Chi se ne occupa <span class="facoltativo">(facoltativo: puoi lasciarla da assegnare)</span></legend>
+    <legend>Chi se ne occupa ${aiuto("squadra")} <span class="facoltativo">(facoltativo: puoi lasciarla da assegnare) · ★ referente</span>${aiuto("referente")}</legend>
     <p class="nota-squadra" id="nota-squadra" aria-live="polite"></p>
     <div class="persone">${utenti.map((u) => `
       <div class="persona">

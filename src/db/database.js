@@ -49,17 +49,28 @@ function aggiornaTabelle(db) {
   aggiungi("notifiche", "link", "TEXT");
   // Categorie e squadre: ogni scadenza ha la sua categoria (la materia),
   // e ogni categoria può avere una squadra predefinita (vedi db/categorie.js)
-  if (!colonne("scadenze").includes("materia")) {
-    db.exec("ALTER TABLE scadenze ADD COLUMN materia TEXT NOT NULL DEFAULT ''");
-    // Le scadenze già inserite prendono la materia del loro atto
-    db.exec("UPDATE scadenze SET materia = (SELECT a.materia FROM atti a WHERE a.id = scadenze.atto_id) WHERE atto_id IS NOT NULL");
-  }
+  aggiungi("scadenze", "materia", "TEXT NOT NULL DEFAULT ''");
+  // Le scadenze con un atto ma senza categoria prendono la categoria del loro atto
+  db.exec(`UPDATE scadenze SET materia = (SELECT a.materia FROM atti a WHERE a.id = scadenze.atto_id)
+           WHERE atto_id IS NOT NULL AND materia = ''`);
   db.exec(`CREATE TABLE IF NOT EXISTS categorie_squadre (
     materia   TEXT NOT NULL,
     utente_id INTEGER NOT NULL REFERENCES utenti(id),
     referente INTEGER NOT NULL DEFAULT 0,  -- 1 = è il referente predefinito
     PRIMARY KEY (materia, utente_id)
   )`);
+  // La Guida: le pagine scritte dall'Admin ("Procedure dello studio").
+  // Il manuale dell'app invece sta nella cartella guida/ del progetto.
+  db.exec(`CREATE TABLE IF NOT EXISTS guida_pagine (
+    id         INTEGER PRIMARY KEY,
+    titolo     TEXT NOT NULL,
+    testo      TEXT NOT NULL,
+    ordine     INTEGER NOT NULL DEFAULT 0,
+    modificata INTEGER NOT NULL,
+    autore_id  INTEGER REFERENCES utenti(id)
+  )`);
+  // Il tutorial: 1 = già visto (completato o saltato)
+  aggiungi("utenti", "tutorial_visto", "INTEGER NOT NULL DEFAULT 0");
   // L'elenco delle categorie: così una categoria esiste anche senza atti
   // (es. creata per le udienze). All'avvio si aggiungono quelle già in uso.
   db.exec(`CREATE TABLE IF NOT EXISTS categorie (nome TEXT PRIMARY KEY COLLATE NOCASE);

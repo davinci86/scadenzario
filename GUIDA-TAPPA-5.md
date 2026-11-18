@@ -163,3 +163,61 @@ test/categorie.test.js
 Il campo nascosto `squadra_da_categoria` dice al server se chi inserisce ha toccato la squadra
 (0) oppure no (1). Così, se la squadra arriva vuota perché JavaScript è spento, il server usa
 quella della categoria; se invece l'hai svuotata tu apposta, resta da assegnare.
+
+# Aggiunta: le "i" con la spiegazione
+
+In **Nuova scadenza** e nella **scheda di una scadenza**, accanto ai campi e ai titoli c'è una
+piccola **i** nel cerchietto. Passandoci sopra con il mouse compare una breve spiegazione;
+cliccandoci resta aperta finché non clicchi altrove o premi Esc (che chiude solo la
+spiegazione, non la finestra o il pannello). Funziona anche su tablet, al tocco.
+
+**I testi stanno tutti in `src/views/aiuti.js`**, uno per riga: per correggerne uno basta
+cambiare la frase lì. Gli avvisi importanti (es. «da verificare», «non ancora assegnata»)
+restano invece sempre a schermo.
+
+# Aggiunta: la Guida e il tutorial
+
+## La Guida (menu laterale → Guida)
+
+Sempre consultabile da qualunque pagina. Ha due parti:
+
+- **Come funziona lo Scadenzario**: il manuale, scritto da noi. Ogni pagina è un file in
+  `guida/` (es. `guida/05-nuova-scadenza.md`). In testa al file c'è per chi è:
+  `ruoli: tutti`, `ruoli: editor, admin` oppure `ruoli: admin`. Chi non ha il ruolo non vede
+  la pagina (né nell'indice, né nella ricerca, né aprendo il link a mano). Il numero nel nome
+  del file decide l'ordine. Si aggiorna con il codice: cambiare un testo = cambiare il file.
+- **Procedure dello studio**: pagine scritte dall'**Admin** dall'app stessa (+ Nuova pagina,
+  Modifica, Elimina). Servono per le istruzioni operative dello studio, anche non tecniche
+  (a chi rivolgersi, come si archivia, le abitudini di casa). Stanno nel database (tabella
+  `guida_pagine`), quindi finiscono nei backup. Ogni modifica va nel Registro.
+
+C'è una **ricerca** su entrambe le parti. La formattazione è semplice: `#` titoli, `-` elenchi,
+`**grassetto**`, `*corsivo*`, `[testo](/indirizzo)` per i link, `>` per un riquadro di avviso.
+Il testo viene sempre ripulito prima di mostrarlo: nessuno può inserire codice nella pagina.
+
+## Il tutorial guidato
+
+Al **primo accesso** (anche dopo il cambio della password provvisoria) parte un tour sulla
+dashboard: oscura lo schermo, illumina una zona alla volta e la spiega in un fumetto
+(Avanti / Indietro / Salta; frecce e Esc da tastiera). È **diverso per ruolo**: il
+Collaboratore vede 12 passi, l'Editor anche Nuova scadenza, l'Admin anche Utenti, Registro,
+Backup e Impostazioni (18 passi). Finito o saltato, non riparte più da solo; si rivede da
+**menu sul nome → Rivedi il tutorial** oppure dal pulsante nella Guida.
+
+## Da fare prima della messa in servizio
+
+I testi del manuale e del tutorial sono una **prima stesura**: vanno riletti e completati
+alla fine, quando l'app è definitiva (come deciso: struttura ora, testi alla fine).
+
+## Nel codice
+
+```
+guida/*.md                 le pagine del manuale
+src/servizi/testo.js       la formattazione sicura (testoInHtml)
+src/servizi/guida.js       manuale, procedure dello studio, ricerca
+src/views/guida.js         indice, lettura, modifica
+src/routes/guida.js        /guida, /guida/studio/…, /tutorial/visto
+src/views/tutorial.js      i passi del tutorial per ruolo (testi qui)
+public/js/tutorial.js      il tour sullo schermo
+test/guida.test.js
+```

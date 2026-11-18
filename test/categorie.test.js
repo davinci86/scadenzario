@@ -194,3 +194,16 @@ test("una categoria vuota si elimina con la sola conferma; solo l'Admin", async 
   await invia(indirizzo, "/admin/impostazioni/categorie/elimina", anna, { nome: "Lavoro", conferma: "1" });
   assert.ok(!C.categorie(db).includes("Lavoro"));
 });
+
+// ── Le "i" con la spiegazione ────────────────────────────────
+test("le 'i' compaiono nel modulo e nella scheda, con il testo (mai HTML)", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  const modulo = await (await apri(indirizzo, "/scadenze/nuova", anna)).text();
+  assert.ok((modulo.match(/class="aiuto"/g) || []).length >= 7);
+  assert.match(modulo, /data-aiuto="Dal 1° al 31 agosto/);
+  const s = db.prepare("SELECT id FROM scadenze WHERE atto_id IS NOT NULL LIMIT 1").get();
+  const scheda = await (await apri(indirizzo, `/scadenze/${s.id}`, anna)).text();
+  assert.match(scheda, /data-aiuto="Lo stato dice a che punto/);
+  assert.match(scheda, /data-aiuto="Se la decorrenza era sbagliata[^"]*con la regola del catalogo per «/);
+  assert.equal(/data-aiuto="[^"]*<[a-z]/.test(scheda), false);
+});

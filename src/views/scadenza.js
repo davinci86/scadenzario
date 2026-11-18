@@ -10,6 +10,7 @@ const { TIPI, statiDi, eChiuso } = require("../dominio/stati");
 const { formatta, formattaMomento } = require("../dominio/date");
 const { puoModificare, puoLavorare, eAdmin } = require("../auth/regole");
 const { mancano, campione } = require("./scadenze-comuni");
+const { aiuto } = require("./aiuti");
 
 // Il contenuto del dettaglio, senza la cornice della pagina.
 // Si usa sia nella pagina intera sia nel pannello laterale.
@@ -32,14 +33,14 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
   const stati = statiDi(s.tipo).filter((st) => st !== "Rinviata");
   const blocoStato = `
 <section class="pannello">
-  <h2>Stato</h2>
+  <h2>Stato ${aiuto("stati")}</h2>
   ${lavora ? "" : `<p class="nota">Puoi cambiare lo stato solo delle attività in cui sei coinvolto.</p>`}
   <form method="post" action="${url}/stato" class="stati">
     ${stati.map((st) => `<button class="stato${st === s.stato ? " attuale" : ""}" name="stato" value="${esc(st)}"${lavora ? "" : " disabled"}${st === s.stato ? ' aria-pressed="true"' : ""}>${campione(st)}${esc(st)}</button>`).join("")}
   </form>
   ${s.tipo === "udienza" && lavora && !eChiuso(s.stato) ? `
   <form method="post" action="${url}/rinvio" class="riquadro" data-nome="Rinvio dell'udienza">
-    <b>Udienza rinviata?</b> Indica la nuova data: verrà creata la nuova udienza con la stessa squadra.
+    <b>Udienza rinviata?</b> ${aiuto("rinvio")}
     <div class="in-linea"><input type="date" name="data" required aria-label="Nuova data"><input type="time" name="ora" value="${esc(s.ora)}" aria-label="Ora"><button class="btn piccolo">Segna come rinviata</button></div>
   </form>` : ""}
 </section>`;
@@ -47,7 +48,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
   // ── Squadra ──
   const blocoSquadra = `
 <section class="pannello">
-  <h2>Chi se ne occupa</h2>
+  <h2>Chi se ne occupa ${aiuto("squadraScheda")}</h2>
   ${nessuno ? `<p class="avviso"><b>Non ancora assegnata.</b> Finché non la assegni, i promemoria arriveranno ad Admin ed Editor.</p>` : ""}
   <ul class="squadra">${s.squadra.map((p) => `
     <li><span class="av">${esc(p.nome.replace(/^(Avv\.|Dott\.)\s*/, "").split(" ").map((x) => x[0]).slice(0, 2).join(""))}</span>
@@ -66,7 +67,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
   // ── Note e storico ──
   const blocoNote = lavora ? `
 <section class="pannello">
-  <h2>Aggiungi una nota</h2>
+  <h2>Aggiungi una nota ${aiuto("nota")}</h2>
   <form method="post" action="${url}/nota" class="modulo">
     <textarea name="nota" rows="3" placeholder="Es. bozza inviata al dominus per la revisione" aria-label="Nota"></textarea>
     <button class="btn piccolo">Salva nota</button>
@@ -76,7 +77,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
 
   const blocoStorico = `
 <section class="pannello">
-  <h2>Storico</h2>
+  <h2>Storico ${aiuto("storico")}</h2>
   <ol class="storico">${storico.map((h) =>
     `<li><time>${formattaMomento(h.quando)}</time><span><b>${esc(h.nome || "Sistema")}</b> · ${esc(h.testo)}</span></li>`).join("")}</ol>
 </section>`;
@@ -101,15 +102,14 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
   const strumenti = modifica ? `
 ${atto ? `
 <section class="pannello">
-  <h2>Ricalcola dalla decorrenza</h2>
+  <h2>Ricalcola dalla decorrenza ${aiuto("ricalcola", atto.nome)}</h2>
   <form method="post" action="${url}/ricalcola" class="modulo">
     <input type="date" name="data_evento" value="${esc(s.data_evento || "")}" required aria-label="Data di decorrenza">
-    <p class="nota">Usa la regola del catalogo per «${esc(atto.nome)}».</p>
     <button class="btn piccolo">Ricalcola</button>
   </form>
 </section>` : ""}
 <section class="pannello">
-  <h2>Correggi la data a mano</h2>
+  <h2>Correggi la data a mano ${aiuto("correggi")}</h2>
   <form method="post" action="${url}/correggi" class="modulo">
     <div class="in-linea"><input type="date" name="data" value="${esc(s.data)}" required aria-label="Nuova data">${s.tipo === "udienza" ? `<input type="time" name="ora" value="${esc(s.ora)}" aria-label="Ora">` : ""}</div>
     <input name="motivo" placeholder="Motivo della correzione (obbligatorio)" required minlength="5" aria-label="Motivo">

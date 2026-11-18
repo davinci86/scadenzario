@@ -158,7 +158,8 @@ function rotteUtenti(db) {
     // Le altre sessioni aperte con la vecchia password si chiudono; questa resta
     U.impostaPassword(db, req.utente.id, nuova, { provvisoria: false, tranneSessione: impronta(leggiCookie(req)) });
     registra(db, req.utente.id, "Password cambiata");
-    res.redirect("/profilo?password=1");
+    // Primo accesso (password provvisoria): si va alla dashboard, dove parte il tutorial
+    res.redirect(req.utente.cambiaPassword ? "/" : "/profilo?password=1");
   });
 
   return router;

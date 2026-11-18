@@ -515,3 +515,53 @@ td.diverso { background: var(--ambra-tenue); font-weight: 700; }
 .gestione-categoria form, .gestione-categoria p { margin: 8px 0 0; }
 .gestione-categoria input[name=nuovo] { flex: 1; min-width: 0; }
 .campo-categoria { width: 320px; max-width: 100%; }
+
+/* ── Le "i" con la spiegazione ── */
+.aiuto { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-left: 6px; padding: 0; vertical-align: middle;
+  border-radius: 50%; border: 1.5px solid var(--accento); background: var(--carta); color: var(--accento);
+  font: italic 700 11px/1 Georgia, "Times New Roman", serif; text-transform: none; letter-spacing: 0; cursor: pointer; flex: none; }
+.aiuto:hover, .aiuto[aria-expanded="true"] { background: var(--accento); color: var(--accento-testo); }
+.aiuto:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
+.fumetto-aiuto { position: fixed; z-index: 80; max-width: 320px; background: var(--testo); color: var(--carta);
+  font-size: 13px; font-weight: 400; line-height: 1.45; text-transform: none; letter-spacing: 0;
+  padding: 10px 12px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.22); }
+.titolo-campo { display: flex; align-items: center; gap: 0; }
+.titolo-campo label { margin-bottom: 0 !important; }
+.campo > .titolo-campo { margin-bottom: 5px; }
+.titolo-campo > label { font-size: 13px; font-weight: 700; color: var(--tenue); padding: 0; }
+
+/* ── Guida ── */
+.cerca-guida { display: flex; gap: 8px; max-width: 720px; }
+.cerca-guida input { flex: 1; min-width: 0; border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 9px 12px; font-size: 15px; }
+.colonna-destra .cerca-guida input { font-size: 14px; padding: 7px 10px; }
+.griglia-guida { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .griglia-guida { grid-template-columns: 1fr; } }
+.indice-guida { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+.indice-guida a { font-weight: 600; text-decoration: none; }
+.indice-guida a:hover { text-decoration: underline; }
+.indice-guida a[aria-current="page"] { color: var(--testo); }
+.risultati-guida { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.risultati-guida p { margin: 2px 0 0; }
+.testo-guida { max-width: 760px; line-height: 1.6; }
+.testo-guida h1 { margin-bottom: 6px; }
+.testo-guida h2 { font-size: 18px; text-transform: none; letter-spacing: 0; color: var(--testo); margin: 22px 0 6px; }
+.testo-guida h3 { font-size: 16px; margin: 16px 0 4px; }
+.testo-guida ul, .testo-guida ol { padding-left: 22px; }
+.testo-guida li { margin: 4px 0; }
+.testo-guida code { background: var(--sfondo); border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+.riquadro-guida { background: var(--ambra-tenue); border-left: 4px solid var(--ambra); border-radius: 6px; padding: 10px 12px; }
+.azioni-guida { margin-top: 24px; border-top: 1px solid var(--linea); padding-top: 12px; }
+.testo-lungo { width: 100%; box-sizing: border-box; font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+
+/* ── Tutorial ── */
+.tutorial-velo { position: fixed; inset: 0; z-index: 88; }
+.tutorial-velo.scuro { background: rgba(15, 18, 25, .55); }
+.tutorial-faro { position: fixed; z-index: 89; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(15, 18, 25, .55), 0 0 0 3px var(--accento);
+  pointer-events: none; transition: all .2s ease; }
+.tutorial-fumetto { position: fixed; z-index: 90; width: min(360px, calc(100vw - 24px)); background: var(--carta); color: var(--testo);
+  border-radius: 12px; padding: 16px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
+.tutorial-fumetto.al-centro { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 24px)); }
+.tutorial-fumetto h2 { font-family: var(--font-documento); font-size: 20px; text-transform: none; letter-spacing: 0; color: var(--testo); margin: 2px 0 8px; }
+.tutorial-conta { margin: 0; font-size: 12px; color: var(--tenue); font-weight: 600; }
+.tutorial-testo { margin: 0 0 14px; line-height: 1.5; }
+.tutorial-azioni { display: flex; gap: 8px; align-items: center; }

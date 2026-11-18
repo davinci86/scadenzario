@@ -48,7 +48,6 @@ function avviaModuloNuova(modulo) {
     const materiaAtto = !udienza && opzione?.dataset.materia;
     if (materiaAtto) categoria.value = materiaAtto;
     categoria.disabled = !!materiaAtto; // il server usa comunque la materia dell'atto
-    $("nota-categoria").hidden = !materiaAtto;
 
     // L'attività si compila con il nome dell'atto, se non l'hai già scritta tu
     const attivita = $("attivita");

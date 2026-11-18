@@ -24,6 +24,7 @@ const ICONE = {
   fascicoli: '<path d="M3 7.5V18a1.5 1.5 0 0 0 1.5 1.5h15A1.5 1.5 0 0 0 21 18V9a1.5 1.5 0 0 0-1.5-1.5H12l-2-2.5H4.5A1.5 1.5 0 0 0 3 6.5z"/><path d="M8 13h8"/>',
   backup: '<ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-6M4.5 11.5v6c0 1.5 3.4 2.8 7.5 2.8"/><path d="M17.5 15.5v5M15 18l2.5 2.5L20 18"/>',
   impostazioni: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+  guida: '<path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H11v17H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 4.5A1.5 1.5 0 0 0 18.5 3H13v17h5.5a1.5 1.5 0 0 0 1.5-1.5z"/><path d="M11 20c0-.8.9-1.5 2-1.5"/>',
   comprimi: '<path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>',
 };
 const icona = (nome) =>
@@ -33,7 +34,7 @@ const icona = (nome) =>
 // "attiva" indica quale voce del menu evidenziare.
 function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
   const voci = [["/", "Dashboard", "dash"], ["/scadenzario", "Scadenzario", "scadenzario"],
-    ["/segnalazioni", "Segnalazioni", "segnalazioni"], ["/fascicoli", "Fascicoli", "fascicoli"]];
+    ["/segnalazioni", "Segnalazioni", "segnalazioni"], ["/fascicoli", "Fascicoli", "fascicoli"], ["/guida", "Guida", "guida"]];
   if (utente && (utente.ruolo === "admin" || utente.titolare)) voci.push(["/ingressi", "Ingressi", "ingressi"]);
   if (utente && utente.ruolo === "admin") voci.push(["/admin/utenti", "Utenti", "utenti"], ["/admin/registro", "Registro", "registro"], ["/admin/backup", "Backup", "backup"], ["/admin/impostazioni", "Impostazioni", "impostazioni"]);
 
@@ -65,6 +66,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
           </button>
           <div class="menu-utente" role="menu" hidden>
             <a role="menuitem" href="/profilo">Il mio profilo</a>
+            <a role="menuitem" href="/?tutorial=1">Rivedi il tutorial</a>
             <form method="post" action="/blocca" data-blocca-ora><button role="menuitem" type="submit">🔒 Blocca lo schermo <kbd>Ctrl+Alt+L</kbd></button></form>
             <form method="post" action="/preferenze/tema"><button role="menuitem" type="submit">${utente.tema === "scuro" ? "☀ Tema chiaro" : "☾ Tema scuro"}</button></form>
             <form method="post" action="/logout"><button role="menuitem" type="submit" class="esci">Esci</button></form>
@@ -83,7 +85,7 @@ function layout({ titolo, utente, attiva = "", contenuto, script = [] }) {
 </head>
 <body>
 ${utente ? `<div class="app">${barra}<div class="app-colonna">${barraAlta}<main>${contenuto}</main></div></div>` : `<main>${contenuto}</main>`}
-${[...new Set(utente ? ["modifiche.js", "menu.js", "campanella.js", "blocco.js", ...script, "pannelli.js"] : script)].map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
+${[...new Set(utente ? ["modifiche.js", "menu.js", "aiuti.js", "campanella.js", "blocco.js", ...script, "pannelli.js"] : script)].map((file) => `<script src="/js/${file}" defer></script>`).join("\n")}
 </body>
 </html>`;
 }

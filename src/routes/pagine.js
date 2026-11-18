@@ -63,6 +63,8 @@ function rottePagine(db) {
         scadenze: aperte.filter((s) => s.squadra.some((p) => p.id === persona.id)),
       }));
     }
+    // Il tutorial: al primo accesso, oppure se richiesto ("Rivedi il tutorial")
+    dati.tutorial = req.query.tutorial === "1" || !u.tutorialVisto;
     res.send(paginaDashboard(u, dati));
   });
 
