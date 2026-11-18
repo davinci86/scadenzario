@@ -107,6 +107,8 @@ function eliminaUtente(db, id, autoreId) {
       }
       aggiungiStorico(db, s.id, autoreId, `Tolto dalla squadra: ${persona.nome} (utente eliminato)`);
     }
+    // Esce anche dalle squadre predefinite delle categorie
+    db.prepare("DELETE FROM categorie_squadre WHERE utente_id = ?").run(persona.id);
     // 2. Niente più accesso, niente più dati personali inutili.
     //    Il nome utente viene liberato (potrà usarlo una persona nuova).
     db.prepare("DELETE FROM sessioni WHERE utente_id = ?").run(persona.id);

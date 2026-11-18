@@ -11,7 +11,9 @@ const config = require("../config");
 // Solo il modulo: si usa nella finestra sovrapposta e nella pagina.
 // inFinestra: nella finestra sovrapposta non c'è «Annulla» (si chiude con la ×)
 // terminiAltro: i termini proposti per gli atti fuori catalogo (Impostazioni)
-function moduloNuova(atti, utenti, valori = {}, errori = [], { inFinestra = false, terminiAltro = config.terminiAltro } = {}) {
+// categorie e squadre: le categorie e la squadra predefinita di ognuna (Impostazioni → Categorie e squadre)
+function moduloNuova(atti, utenti, valori = {}, errori = [],
+  { inFinestra = false, terminiAltro = config.terminiAltro, categorie = [], squadre = {} } = {}) {
   const v = (campo) => esc(valori[campo] ?? "");
   const tipo = TIPI[valori.tipo] ? valori.tipo : "scadenza";
   const squadraScelta = new Set([].concat(valori.squadra ?? []).map(String));
@@ -20,13 +22,15 @@ function moduloNuova(atti, utenti, valori = {}, errori = [], { inFinestra = fals
   // Gli atti raggruppati per materia
   const materie = [...new Set(atti.map((a) => a.materia))];
   const opzioniAtti = materie.map((m) => `<optgroup label="${esc(m)}">${atti.filter((a) => a.materia === m)
-    .map((a) => `<option value="${a.id}" data-tipo="${a.tipo}" data-evento="${esc(EVENTI[a.evento])}" data-regola="${esc(a.regolaTesto)}"${String(valori.atto) === String(a.id) ? " selected" : ""}>${esc(a.nome)}</option>`)
+    .map((a) => `<option value="${a.id}" data-tipo="${a.tipo}" data-evento="${esc(EVENTI[a.evento])}" data-regola="${esc(a.regolaTesto)}" data-materia="${esc(a.materia)}"${String(valori.atto) === String(a.id) ? " selected" : ""}>${esc(a.nome)}</option>`)
     .join("")}</optgroup>`).join("");
 
   return `
 <h2 class="titolo-finestra">Nuova scadenza</h2>
 ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> ${errori.map(esc).join(" ")}</div>` : ""}
-<form method="post" action="/scadenze" class="pannello modulo-grande" id="nuova" data-nome="Nuova scadenza"${errori.length ? " data-non-salvato" : ""}>
+<form method="post" action="/scadenze" class="pannello modulo-grande" id="nuova" data-nome="Nuova scadenza"${errori.length ? " data-non-salvato" : ""}
+  data-squadre="${esc(JSON.stringify(squadre))}">
+  <input type="hidden" name="squadra_da_categoria" value="${valori.squadra_da_categoria === "0" ? "0" : "1"}">
 
   <fieldset class="campo">
     <legend>Tipo</legend>
@@ -42,6 +46,15 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
       <option value="altro"${valori.atto === "altro" ? " selected" : ""}>Altro: non è nel catalogo</option>
     </select>
     <p class="nota" id="regola-atto"></p>
+  </div>
+
+  <div class="campo" id="blocco-categoria">
+    <label for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
+      <option value="">Nessuna categoria</option>
+      ${categorie.map((c) => `<option value="${esc(c)}"${valori.categoria === c ? " selected" : ""}>${esc(c)}</option>`).join("")}
+    </select>
+    <p class="nota" id="nota-categoria">Per gli atti del catalogo la categoria è la materia dell'atto.</p>
   </div>
 
   <div class="due-colonne">
@@ -73,6 +86,7 @@ ${errori.length ? `<div class="errore" role="alert"><b>Controlla il modulo:</b> 
 
   <fieldset class="campo">
     <legend>Chi se ne occupa <span class="facoltativo">(facoltativo: puoi lasciarla da assegnare)</span></legend>
+    <p class="nota-squadra" id="nota-squadra" aria-live="polite"></p>
     <div class="persone">${utenti.map((u) => `
       <div class="persona">
         <label class="spunta"><input type="checkbox" name="squadra" value="${u.id}"${squadraScelta.has(String(u.id)) ? " checked" : ""}> ${esc(u.nome)} <span class="tenue">· ${esc(u.titolo)}</span></label>

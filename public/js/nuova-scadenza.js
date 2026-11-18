@@ -4,6 +4,8 @@
 //  1. mostra solo i campi che servono per il tipo e l'atto scelti
 //  2. chiede al server il calcolo del termine e lo mostra in anteprima
 //  3. tiene coerenti squadra e referente
+//  4. propone la squadra predefinita della categoria (finché non la
+//     cambi tu: da quel momento la tua scelta non viene più toccata)
 // È una funzione perché il modulo può comparire due volte in modi
 // diversi: nella finestra sovrapposta (pannelli.js) o in una pagina sola.
 // Se JavaScript fosse spento, il modulo funziona lo stesso.
@@ -40,6 +42,13 @@ function avviaModuloNuova(modulo) {
       : opzione?.dataset.evento || "Data di decorrenza";
     $("etichetta-data").textContent = udienza ? "Data e ora dell'udienza" : "Data di scadenza, forzata a mano";
     $("regola-atto").textContent = opzione?.dataset.regola || "";
+
+    // La categoria: per un atto del catalogo è la sua materia (e non si cambia)
+    const categoria = $("categoria");
+    const materiaAtto = !udienza && opzione?.dataset.materia;
+    if (materiaAtto) categoria.value = materiaAtto;
+    categoria.disabled = !!materiaAtto; // il server usa comunque la materia dell'atto
+    $("nota-categoria").hidden = !materiaAtto;
 
     // L'attività si compila con il nome dell'atto, se non l'hai già scritta tu
     const attivita = $("attivita");
@@ -84,6 +93,46 @@ function avviaModuloNuova(modulo) {
     box.append(riga1, riga2);
   }
 
+  // ── La squadra predefinita della categoria ──
+  const squadre = JSON.parse(modulo.dataset.squadre || "{}");
+  const daCategoria = modulo.querySelector("input[name=squadra_da_categoria]");
+  const nota = $("nota-squadra");
+  const categoriaScelta = () => $("categoria").value;
+
+  function proponiSquadra() {
+    const materia = categoriaScelta();
+    const predefinita = squadre[materia];
+    if (daCategoria.value === "1" && predefinita) {
+      // Spunta la squadra della categoria e il suo referente
+      for (const c of modulo.querySelectorAll("input[name=squadra]")) c.checked = predefinita.utenti.includes(Number(c.value));
+      for (const r of modulo.querySelectorAll("input[name=referente]")) r.checked = Number(r.value) === predefinita.referente;
+    }
+    aggiornaNotaSquadra();
+  }
+
+  function aggiornaNotaSquadra() {
+    const materia = categoriaScelta();
+    const predefinita = squadre[materia];
+    nota.replaceChildren();
+    if (!materia) { nota.hidden = true; return; }
+    nota.hidden = false;
+    if (daCategoria.value === "0") {
+      nota.append("Scelta a mano. ");
+      if (predefinita?.utenti.length) {
+        const ripristina = document.createElement("button");
+        ripristina.type = "button";
+        ripristina.className = "link";
+        ripristina.textContent = `Usa la squadra della categoria «${materia}»`;
+        ripristina.addEventListener("click", () => { daCategoria.value = "1"; proponiSquadra(); });
+        nota.append(ripristina);
+      }
+    } else if (predefinita?.utenti.length) {
+      nota.append(`Proposta dalla categoria «${materia}»: puoi cambiarla prima di inserire.`);
+    } else {
+      nota.append(`La categoria «${materia}» non ha una squadra predefinita: se non scegli nessuno resterà da assegnare.`);
+    }
+  }
+
   // Squadra e referente sempre coerenti
   function sistemaReferente(evento) {
     const spuntati = [...modulo.querySelectorAll("input[name=squadra]:checked")].map((c) => c.value);
@@ -99,13 +148,22 @@ function avviaModuloNuova(modulo) {
   }
 
   modulo.addEventListener("change", (evento) => {
-    if (["squadra", "referente"].includes(evento.target.name)) return sistemaReferente(evento);
+    if (["squadra", "referente"].includes(evento.target.name)) {
+      daCategoria.value = "0"; // l'hai toccata tu: da qui in poi decidi tu
+      aggiornaNotaSquadra();
+      return sistemaReferente(evento);
+    }
     if (evento.target.id === "attivita") return;
     aggiornaCampi();
+    // Cambiando tipo, atto o categoria si ripropone la squadra (se non l'hai scelta tu)
+    if (["tipo", "atto", "categoria"].includes(evento.target.name)) proponiSquadra();
   });
   $("attivita").addEventListener("input", (e) => (e.target.dataset.automatica = "0"));
   $("data_evento").addEventListener("input", aggiornaAnteprima);
   aggiornaCampi();
+  aggiornaNotaSquadra(); // all'apertura non si spunta niente: solo la nota
+  // Il campo disabilitato non verrebbe inviato: prima di inviare lo riabilitiamo
+  modulo.addEventListener("submit", () => { $("categoria").disabled = false; });
 }
 
 // Se la pagina contiene già il modulo (pagina intera), lo avviamo subito.

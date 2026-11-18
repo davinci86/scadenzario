@@ -170,3 +170,24 @@ function inserisciProvaTappa4(db) {
 }
 
 module.exports.inserisciProvaTappa4 = inserisciProvaTappa4;
+
+// ── Squadre di prova per le categorie (dati inventati) ──
+// Parte solo se nessuna categoria ha ancora una squadra.
+function inserisciProvaCategorie(db) {
+  if (db.prepare("SELECT COUNT(*) AS n FROM categorie_squadre").get().n) return false;
+  const utente = (nomeUtente) => db.prepare("SELECT id FROM utenti WHERE nome_utente = ?").get(nomeUtente)?.id;
+  const squadre = {
+    Immigrazione: [["g.esposito", 1], ["l.romano", 0]],
+    Civile: [["p.russo", 1], ["m.deluca", 0]],
+    Penale: [["m.deluca", 1]],
+    "Infortunistica stradale": [["p.russo", 1], ["l.romano", 0]],
+  };
+  const ins = db.prepare("INSERT INTO categorie_squadre (materia, utente_id, referente) VALUES (?, ?, ?)");
+  let fatto = false;
+  for (const [materia, persone] of Object.entries(squadre)) {
+    for (const [nome, ref] of persone) if (utente(nome)) { ins.run(materia, utente(nome), ref); fatto = true; }
+  }
+  return fatto;
+}
+
+module.exports.inserisciProvaCategorie = inserisciProvaCategorie;

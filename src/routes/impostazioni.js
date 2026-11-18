@@ -21,6 +21,8 @@ const { leggiImpostazioni, salvaImpostazioni } = require("../servizi/impostazion
 const { faiBackup } = require("../servizi/backup");
 const { richiediRuolo } = require("../auth/permessi");
 const V = require("../views/impostazioni");
+const Cat = require("../db/categorie");
+const { utentiAttivi } = require("../db/scadenze");
 
 function rotteImpostazioni(db) {
   const router = express.Router();
@@ -40,6 +42,9 @@ function rotteImpostazioni(db) {
         [pasquetta(anno), "Lunedì dell'Angelo"], [pasquetta(anno + 1), "Lunedì dell'Angelo"],
       ];
       return res.send(V.paginaFestivita(req.utente, { chiusure: C.elencoChiusure(db), inChiusura: C.scadenzeInChiusura(db), feste, ...messaggi(req) }));
+    }
+    if (req.query.scheda === "categorie") {
+      return res.send(V.paginaCategorie(req.utente, { categorie: Cat.elencoCategorie(db), persone: utentiAttivi(db), ...messaggi(req) }));
     }
     if (req.query.scheda === "valori") return res.send(V.paginaValori(req.utente, { imp: leggiImpostazioni(db), ...messaggi(req) }));
     res.send(V.paginaCatalogo(req.utente, { atti: C.elencoCatalogo(db), ...messaggi(req) }));
@@ -127,6 +132,18 @@ function rotteImpostazioni(db) {
         (r.spostamenti.length ? ` (spostato: il ${D.formatta(r.spostamenti[0].data)} era ${r.spostamenti[0].motivo})` : "") +
         (r.giorniAgostoSaltati ? `, esclusi ${r.giorniAgostoSaltati} giorni di agosto` : "") + ".",
     });
+  });
+
+  // ── Categorie e squadre ──
+  router.post("/admin/impostazioni/categorie", soloAdmin, (req, res) => {
+    const materia = String(req.body?.materia ?? "");
+    const errore = Cat.salvaSquadraCategoria(db, materia, req.body, req.utente.id);
+    vai(res, "/admin/impostazioni?scheda=categorie", errore ? "errore" : "fatto", errore || `Squadra della categoria «${materia}» salvata: vale per le nuove scadenze.`);
+  });
+  router.post("/admin/impostazioni/categorie/assegna", soloAdmin, (req, res) => {
+    const materia = String(req.body?.materia ?? "");
+    const n = Cat.assegnaApertesenzaSquadra(db, materia, req.utente);
+    vai(res, "/admin/impostazioni?scheda=categorie", "fatto", `Categoria «${materia}»: ${n} ${n === 1 ? "scadenza assegnata" : "scadenze assegnate"}.`);
   });
 
   // ── Chiusure e valori predefiniti ──

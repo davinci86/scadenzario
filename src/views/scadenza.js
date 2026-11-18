@@ -88,6 +88,7 @@ function contenutoScadenza(utente, s, { atto, rinvio, storico, utenti, errore })
   <dl class="dati">
     <dt>${s.tipo === "udienza" ? "Data udienza" : "Entro il"}</dt><dd><b>${formatta(s.data)}${s.ora ? " ore " + esc(s.ora) : ""}</b> ${mancano(s)}</dd>
     <dt>Stato</dt><dd>${esc(s.stato)}</dd>
+    ${s.materia ? `<dt>Categoria</dt><dd>${esc(s.materia)}</dd>` : ""}
     ${atto ? `<dt>Atto</dt><dd>${esc(atto.nome)}</dd>` : ""}
     ${s.data_evento ? `<dt>Decorrenza</dt><dd>${formatta(s.data_evento)}</dd>` : ""}
     ${s.calcolo ? `<dt>Calcolo</dt><dd>${esc(s.calcolo)}</dd>` : ""}

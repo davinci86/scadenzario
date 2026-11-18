@@ -20,6 +20,7 @@ const { TIPI, statiDi, primoStato, eChiuso } = require("../dominio/stati");
 const D = require("../dominio/date");
 const { paginaScadenzario } = require("../views/scadenzario");
 const { paginaNuova, moduloNuova } = require("../views/nuova");
+const C = require("../db/categorie");
 const { leggiImpostazioni } = require("../servizi/impostazioni");
 const { paginaScadenza, contenutoScadenza } = require("../views/scadenza");
 
@@ -92,17 +93,35 @@ function leggiNuovaScadenza(db, corpo) {
         dati.data = calcolaTermine(dati.data_evento, regola, chiusure(db)).data;
         dati.calcolo = regolaAParole(regola);
         if (!dati.attivita) dati.attivita = atto.nome;
+        dati.materia = atto.materia; // la categoria di un atto del catalogo è la sua materia
       }
     }
   }
 
-  // La squadra: solo utenti attivi; il referente deve farne parte
-  const attivi = new Set(S.utentiAttivi(db).map((u) => u.id));
-  const squadra = [...new Set([].concat(corpo.squadra ?? []).map(Number))].filter((id) => attivi.has(id));
-  const referente = Number(corpo.referente);
-  dati.referente_id = squadra.includes(referente) ? referente : squadra[0] ?? null;
+  // La categoria: per gli atti del catalogo viene dall'atto; per udienze
+  // e atti fuori catalogo la sceglie chi inserisce (facoltativa)
+  if (dati.materia === undefined) {
+    const scelta = testo("categoria", 60);
+    dati.materia = C.categorie(db).includes(scelta) ? scelta : "";
+  }
 
-  return errori.length ? { errori } : { dati, squadra };
+  // La squadra: solo utenti attivi; il referente deve farne parte.
+  // "squadra_da_categoria" = 1 vuol dire che chi inserisce non l'ha toccata:
+  // se non è arrivato nessun nome (es. JavaScript spento) usiamo quella della categoria.
+  const attivi = new Set(S.utentiAttivi(db).map((u) => u.id));
+  let squadra = [...new Set([].concat(corpo.squadra ?? []).map(Number))].filter((id) => attivi.has(id));
+  let referente = Number(corpo.referente);
+  const predefinita = dati.materia ? C.squadraDiCategoria(db, dati.materia) : { utenti: [], referente: null };
+  if (corpo.squadra_da_categoria === "1" && !squadra.length && predefinita.utenti.length) {
+    squadra = predefinita.utenti;
+    referente = predefinita.referente;
+  }
+  dati.referente_id = squadra.includes(referente) ? referente : squadra[0] ?? null;
+  // È proprio la squadra della categoria? (lo annotiamo nello storico)
+  const automatica = predefinita.utenti.length > 0 && corpo.squadra_da_categoria === "1" &&
+    squadra.length === predefinita.utenti.length && squadra.every((id) => predefinita.utenti.includes(id));
+
+  return errori.length ? { errori } : { dati, squadra, automatica };
 }
 
 function rotteScadenze(db) {
@@ -124,12 +143,20 @@ function rotteScadenze(db) {
     res.send(paginaScadenzario(req.utente, S.elencoScadenze(db, filtri), filtri, S.utentiAttivi(db)));
   });
 
+  // Cosa serve al modulo oltre ad atti e persone: termini fuori catalogo,
+  // categorie e la squadra predefinita di ognuna
+  const opzioniModulo = () => ({
+    terminiAltro: leggiImpostazioni(db).terminiAltro,
+    categorie: C.categorie(db),
+    squadre: C.mappaSquadre(db),
+  });
+
   // ── Nuova scadenza ──
   router.get("/scadenze/nuova", richiediAccesso, (req, res) => {
     if (!puoModificare(req.utente)) return vietato(req, res);
-    const { terminiAltro } = leggiImpostazioni(db);
-    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db), {}, [], { inFinestra: true, terminiAltro }));
-    res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), {}, [], { terminiAltro }));
+    const opzioni = opzioniModulo();
+    if (parziale(req)) return res.send(moduloNuova(attiAttivi(db), S.utentiAttivi(db), {}, [], { inFinestra: true, ...opzioni }));
+    res.send(paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), {}, [], opzioni));
   });
 
   router.post("/scadenze", richiediAccesso, (req, res) => {
@@ -137,18 +164,26 @@ function rotteScadenze(db) {
     const esito = leggiNuovaScadenza(db, req.body ?? {});
     if (esito.errori) {
       const modulo = parziale(req)
-        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { inFinestra: true, terminiAltro: leggiImpostazioni(db).terminiAltro })
-        : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { terminiAltro: leggiImpostazioni(db).terminiAltro });
+        ? moduloNuova(attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, { inFinestra: true, ...opzioniModulo() })
+        : paginaNuova(req.utente, attiAttivi(db), S.utentiAttivi(db), req.body, esito.errori, opzioniModulo());
       return res.status(400).send(modulo);
     }
-    const { dati, squadra } = esito;
+    const { dati, squadra, automatica } = esito;
     const id = S.creaScadenza(db, dati, squadra, req.utente.id);
     S.aggiungiStorico(db, id, req.utente.id,
-      `Scadenza inserita${dati.calcolo ? " · " + dati.calcolo : ""}${dati.da_verificare ? " · termine da verificare" : ""}`);
+      `Scadenza inserita${dati.materia ? ` · categoria ${dati.materia}` : ""}${dati.calcolo ? " · " + dati.calcolo : ""}${dati.da_verificare ? " · termine da verificare" : ""}`);
+    if (squadra.length) {
+      const chi = db.prepare(`SELECT nome FROM utenti WHERE id IN (${squadra.map(() => "?").join(",")})`).all(...squadra).map((u) => u.nome).join(", ");
+      S.aggiungiStorico(db, id, req.utente.id, automatica
+        ? `Assegnata in automatico (categoria ${dati.materia}): ${chi}`
+        : `Assegnata a mano: ${chi}`);
+    }
     // Notifiche: a chi è stato assegnato, e all'Admin se il termine va verificato
     for (const persona of squadra) {
       notifica(db, { utenti: [persona], scadenzaId: id, autore: req.utente.id,
-        testo: `${req.utente.nome} ti ha assegnato ${dati.tipo === "udienza" ? "un'udienza" : "una scadenza"}${persona === dati.referente_id ? " come referente" : ""}` });
+        testo: automatica
+          ? `Ti è stata assegnata ${dati.tipo === "udienza" ? "un'udienza" : "una scadenza"} (categoria ${dati.materia})${persona === dati.referente_id ? " come referente" : ""}`
+          : `${req.utente.nome} ti ha assegnato ${dati.tipo === "udienza" ? "un'udienza" : "una scadenza"}${persona === dati.referente_id ? " come referente" : ""}` });
     }
     if (dati.da_verificare) {
       const admin = db.prepare("SELECT id FROM utenti WHERE ruolo = 'admin' AND attivo = 1").all().map((u) => u.id);

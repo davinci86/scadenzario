@@ -47,6 +47,19 @@ function aggiornaTabelle(db) {
   aggiungi("utenti", "menu_compresso", "INTEGER NOT NULL DEFAULT 0");
   // Dalla Tappa 4: una notifica può portare a una pagina (segnalazioni, fascicoli)
   aggiungi("notifiche", "link", "TEXT");
+  // Categorie e squadre: ogni scadenza ha la sua categoria (la materia),
+  // e ogni categoria può avere una squadra predefinita (vedi db/categorie.js)
+  if (!colonne("scadenze").includes("materia")) {
+    db.exec("ALTER TABLE scadenze ADD COLUMN materia TEXT NOT NULL DEFAULT ''");
+    // Le scadenze già inserite prendono la materia del loro atto
+    db.exec("UPDATE scadenze SET materia = (SELECT a.materia FROM atti a WHERE a.id = scadenze.atto_id) WHERE atto_id IS NOT NULL");
+  }
+  db.exec(`CREATE TABLE IF NOT EXISTS categorie_squadre (
+    materia   TEXT NOT NULL,
+    utente_id INTEGER NOT NULL REFERENCES utenti(id),
+    referente INTEGER NOT NULL DEFAULT 0,  -- 1 = è il referente predefinito
+    PRIMARY KEY (materia, utente_id)
+  )`);
   // Dalla Tappa 5: per quanti giorni tenere ogni tipo di backup (lo decide l'Admin)
   db.exec("CREATE TABLE IF NOT EXISTS impostazioni_backup (tipo TEXT PRIMARY KEY, giorni INTEGER NOT NULL)");
   // Dalla Tappa 5: i valori predefiniti scelti dall'Admin (promemoria, termini…)

@@ -502,3 +502,11 @@ td.diverso { background: var(--ambra-tenue); font-weight: 700; }
 .modulo-cambio input:not([type=checkbox]):not([type=radio]), .in-linea input:not([type=checkbox]):not([type=radio]) {
   border: 1px solid var(--linea); background: var(--carta); border-radius: 7px; padding: 7px 10px; }
 .modulo-cambio .campo input:not([type=checkbox]):not([type=radio]) { width: 100%; box-sizing: border-box; }
+
+/* ── Squadra proposta dalla categoria ── */
+.nota-squadra { margin: 0 0 8px; font-size: 13px; color: var(--accento); background: var(--accento-tenue); border-radius: 6px; padding: 6px 10px; }
+.nota-squadra[hidden] { display: none; }
+.griglia-categorie { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 14px; }
+.griglia-categorie .pannello { margin: 0; }
+.persone-categoria { display: grid; gap: 4px; margin: 8px 0 12px; }
+.persone-categoria .persona { display: flex; justify-content: space-between; gap: 10px; align-items: center; }

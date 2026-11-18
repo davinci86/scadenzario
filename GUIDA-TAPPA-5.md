@@ -113,3 +113,42 @@ mostrarlo prima; quando premi Applica, decide il server, in un'unica transazione
 
 **Lo storico dell'atto** (tabella `atti_versioni`): ogni creazione e modifica, con chi,
 quando, perché, la norma, la regola prima e dopo, e quante scadenze ha ricalcolato.
+
+# Aggiunta: assegnazione automatica per categoria
+
+Ogni scadenza appartiene a una **categoria**, che è la materia del catalogo (Immigrazione,
+Civile, Penale…). Per ogni categoria l'Admin sceglie una **squadra predefinita** con il suo
+referente ★: quando si inserisce una scadenza di quella categoria, la squadra si propone da sola.
+
+## Da provare
+
+1. **Impostazioni → Categorie e squadre**: per ogni categoria spunta le persone e il referente,
+   poi **Salva**. Nei dati di prova Immigrazione, Civile, Penale e Infortunistica hanno già una squadra.
+2. **+ Nuova scadenza** → scegli un atto di Immigrazione: la categoria si compila da sola e le
+   caselle di «Chi se ne occupa» si spuntano con la squadra. Sopra c'è scritto
+   «Proposta dalla categoria…».
+3. Cambia una casella: la nota diventa «Scelta a mano» e da lì l'app non tocca più la tua
+   scelta, nemmeno se cambi atto. Con «Usa la squadra della categoria» torni alla proposta.
+4. Per un'**udienza** o un atto **fuori catalogo** la categoria la scegli tu dal menu.
+5. Inserisci e apri lo storico: «Assegnata in automatico (categoria …)» oppure
+   «Assegnata a mano».
+6. Dopo l'inserimento si cambia tutto a mano come sempre (Coinvolgi, Togli, Rendi referente).
+
+**Cosa vale per cosa**
+- Una modifica alla squadra di una categoria vale per le scadenze **nuove**.
+- Se ci sono scadenze aperte di quella categoria rimaste da assegnare, nella scheda compare
+  «Assegnale a questa squadra».
+- Chi è disattivato viene saltato; chi viene eliminato esce anche dalle squadre delle categorie.
+
+## Nel codice
+
+```
+src/db/categorie.js         squadra di una categoria, salvataggio, assegnazione delle aperte
+src/routes/scadenze.js      leggiNuovaScadenza: categoria e squadra al momento dell'inserimento
+public/js/nuova-scadenza.js proponiSquadra / aggiornaNotaSquadra: la proposta nel modulo
+test/categorie.test.js
+```
+
+Il campo nascosto `squadra_da_categoria` dice al server se chi inserisce ha toccato la squadra
+(0) oppure no (1). Così, se la squadra arriva vuota perché JavaScript è spento, il server usa
+quella della categoria; se invece l'hai svuotata tu apposta, resta da assegnare.

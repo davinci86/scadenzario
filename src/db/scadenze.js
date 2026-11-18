@@ -79,11 +79,11 @@ function creaScadenza(db, dati, squadra, utenteId) {
   return inTransazione(db, () => {
     const esito = db.prepare(
       `INSERT INTO scadenze (tipo, cliente, attivita, ufficio, fascicolo, atto_id, data_evento, calcolo,
-                             data, ora, stato, da_verificare, referente_id, creata, creata_da)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                             data, ora, stato, da_verificare, referente_id, creata, creata_da, materia)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(dati.tipo, dati.cliente, dati.attivita, dati.ufficio || "", dati.fascicolo || "",
       dati.atto_id ?? null, dati.data_evento || null, dati.calcolo || "", dati.data, dati.ora || "",
-      dati.stato, dati.da_verificare ? 1 : 0, dati.referente_id ?? null, Date.now(), utenteId ?? null);
+      dati.stato, dati.da_verificare ? 1 : 0, dati.referente_id ?? null, Date.now(), utenteId ?? null, dati.materia || "");
     const id = Number(esito.lastInsertRowid);
     for (const persona of squadra) aggiungiAllaSquadra(db, id, persona);
     return id;

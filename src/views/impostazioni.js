@@ -9,7 +9,7 @@ const { formatta, formattaMomento, oggi } = require("../dominio/date");
 const { MOTIVI } = require("../db/catalogo");
 const { VALORI } = require("../servizi/impostazioni");
 
-const SCHEDE = [["", "Catalogo degli atti"], ["festivita", "Festività e chiusure"], ["valori", "Valori predefiniti"]];
+const SCHEDE = [["", "Catalogo degli atti"], ["categorie", "Categorie e squadre"], ["festivita", "Festività e chiusure"], ["valori", "Valori predefiniti"]];
 const TIPO = { scadenza: "Scadenza", adempimento: "Adempimento" };
 
 function cornice(utente, { titolo, scheda = null, contenuto, fatto = "", errore = "" }) {
@@ -182,6 +182,37 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
 </form>` });
 }
 
+// ── Categorie e squadre ──────────────────────────────────────
+// Per ogni categoria (materia) la squadra che si propone da sola
+// quando si inserisce una scadenza di quella categoria.
+function paginaCategorie(utente, { categorie, persone, fatto, errore }) {
+  return cornice(utente, { titolo: "Impostazioni", scheda: "categorie", fatto, errore, contenuto: `
+<p class="nota">Quando si inserisce una scadenza, la squadra della sua categoria si spunta da sola nel modulo: chi inserisce
+  può cambiarla prima di salvare, e dopo Admin ed Editor la cambiano a mano come sempre. Una modifica qui vale per le
+  scadenze <b>nuove</b>. Le categorie sono le materie del catalogo degli atti.</p>
+${categorie.length ? `<div class="griglia-categorie">${categorie.map((c) => `
+<section class="pannello">
+  <h2>${esc(c.materia)}</h2>
+  <p class="nota">${c.atti} ${c.atti === 1 ? "atto" : "atti"} nel catalogo${c.utenti.length ? "" : " · <b>nessuna squadra</b>: le nuove scadenze restano da assegnare"}</p>
+  <form method="post" action="/admin/impostazioni/categorie" class="modulo" data-nome="Squadra della categoria ${esc(c.materia)}">
+    <input type="hidden" name="materia" value="${esc(c.materia)}">
+    <div class="persone-categoria">${persone.map((p) => `
+      <div class="persona">
+        <label class="spunta"><input type="checkbox" name="squadra" value="${p.id}"${c.utenti.includes(p.id) ? " checked" : ""}> ${esc(p.nome)}</label>
+        <label class="spunta tenue"><input type="radio" name="referente" value="${p.id}"${c.referente === p.id ? " checked" : ""}> ★ referente</label>
+      </div>`).join("")}
+    </div>
+    <button class="btn piccolo pri">Salva</button>
+  </form>
+  ${c.daAssegnare && c.utenti.length ? `
+  <form method="post" action="/admin/impostazioni/categorie/assegna" class="spazio-sopra">
+    <input type="hidden" name="materia" value="${esc(c.materia)}">
+    <p class="avviso">${c.daAssegnare} ${c.daAssegnare === 1 ? "scadenza aperta" : "scadenze aperte"} di questa categoria ${c.daAssegnare === 1 ? "è" : "sono"} ancora da assegnare.
+      <button class="btn piccolo">Assegnale a questa squadra</button></p>
+  </form>` : ""}
+</section>`).join("")}</div>` : `<p class="nota">Nessuna categoria: aggiungi prima degli atti al catalogo.</p>`}` });
+}
+
 // ── Festività e chiusure ─────────────────────────────────────
 function paginaFestivita(utente, { chiusure, inChiusura, feste, fatto, errore }) {
   return cornice(utente, { titolo: "Impostazioni", scheda: "festivita", fatto, errore, contenuto: `
@@ -231,4 +262,4 @@ function paginaValori(utente, { imp, fatto, errore }) {
 </form>` });
 }
 
-module.exports = { paginaCatalogo, paginaAtto, paginaCambio, paginaFestivita, paginaValori };
+module.exports = { paginaCatalogo, paginaAtto, paginaCambio, paginaCategorie, paginaFestivita, paginaValori };
