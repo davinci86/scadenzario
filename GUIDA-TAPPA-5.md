@@ -140,10 +140,21 @@ referente ★: quando si inserisce una scadenza di quella categoria, la squadra 
   «Assegnale a questa squadra».
 - Chi è disattivato viene saltato; chi viene eliminato esce anche dalle squadre delle categorie.
 
+**Creare, rinominare, eliminare le categorie** (sempre da Categorie e squadre)
+- **+ Nuova categoria**: esiste subito, anche senza atti (es. per le udienze); puoi darle una squadra.
+- **Rinomina o elimina → Rinomina**: il nome cambia ovunque (atti, scadenze, squadra).
+  Non si può usare il nome di un'altra categoria già esistente.
+- **Rinomina o elimina → Elimina la categoria…**: una pagina dice quanti atti e scadenze ne fanno
+  parte e chiede **in quale categoria spostarli**. La sua squadra predefinita viene tolta (per le
+  nuove varrà quella di destinazione); le squadre già assegnate alle scadenze non cambiano; ogni
+  scadenza spostata ha una riga nello storico. Una categoria vuota si elimina con la sola conferma.
+- Nel modulo di un atto la categoria si sceglie da un menu: niente categorie nate da un errore
+  di battitura.
+
 ## Nel codice
 
 ```
-src/db/categorie.js         squadra di una categoria, salvataggio, assegnazione delle aperte
+src/db/categorie.js         categorie (crea, rinomina, elimina), squadra, assegnazione delle aperte
 src/routes/scadenze.js      leggiNuovaScadenza: categoria e squadra al momento dell'inserimento
 public/js/nuova-scadenza.js proponiSquadra / aggiornaNotaSquadra: la proposta nel modulo
 test/categorie.test.js

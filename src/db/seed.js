@@ -124,6 +124,8 @@ function inserisciDatiDiProva(db) {
     nomeAtto: "Ricorso al TAR", evento: g(-10), stato: "Da iniziare" });
   crea({ cliente: "Ferraro Giovanni", attivita: "Atto di citazione, sinistro stradale con lesioni", ufficio: "Tribunale di Napoli",
     data: g(21), stato: "Da iniziare", verificare: 1 });
+  // La categoria delle scadenze di prova: quella del loro atto
+  db.exec("UPDATE scadenze SET materia = (SELECT a.materia FROM atti a WHERE a.id = scadenze.atto_id) WHERE atto_id IS NOT NULL AND materia = ''");
   return true;
 }
 

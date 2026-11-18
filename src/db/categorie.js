@@ -8,6 +8,9 @@
 // può cambiarla prima di salvare, e dopo Admin ed Editor la cambiano
 // a mano come sempre.
 //
+// L'Admin può anche creare, rinominare ed eliminare le categorie.
+// Eliminandone una, atti e scadenze passano a un'altra categoria scelta.
+//
 // Cambiare la squadra di una categoria vale per le scadenze NUOVE.
 // Per quelle aperte rimaste senza nessuno c'è "Assegna le aperte da
 // assegnare". Le persone disattivate vengono saltate.
@@ -19,12 +22,82 @@ const { registra } = require("./registro");
 
 const NON_CHIUSE = `stato NOT IN (${CHIUSI.map(() => "?").join(", ")})`;
 
-// Tutte le categorie: le materie degli atti, più quelle già usate
+// Tutte le categorie: quelle create, più le materie già usate da atti e scadenze
 function categorie(db) {
   return db.prepare(
-    `SELECT materia FROM atti UNION SELECT materia FROM categorie_squadre UNION
-     SELECT materia FROM scadenze WHERE materia <> '' ORDER BY materia`
-  ).all().map((r) => r.materia).filter(Boolean);
+    `SELECT nome FROM categorie UNION SELECT materia FROM atti UNION SELECT materia FROM categorie_squadre UNION
+     SELECT materia FROM scadenze WHERE materia <> '' ORDER BY 1 COLLATE NOCASE`
+  ).all().map((r) => r.nome).filter(Boolean);
+}
+
+// Esiste già una categoria con questo nome? (senza badare a maiuscole/minuscole)
+const trova = (db, nome) => categorie(db).find((c) => c.toLowerCase() === String(nome ?? "").trim().toLowerCase()) ?? null;
+
+// Un nome di categoria accettabile: da 2 a 60 caratteri, spazi sistemati
+function controllaNome(nome) {
+  const n = String(nome ?? "").trim().replace(/\s+/g, " ");
+  if (n.length < 2 || n.length > 60) return { errore: "Il nome della categoria deve avere da 2 a 60 caratteri." };
+  return { nome: n };
+}
+
+// ── Creare, rinominare, eliminare ────────────────────────────
+function creaCategoria(db, nome, autore) {
+  const { nome: n, errore } = controllaNome(nome);
+  if (errore) return errore;
+  if (trova(db, n)) return `La categoria «${trova(db, n)}» esiste già.`;
+  db.prepare("INSERT INTO categorie (nome) VALUES (?)").run(n);
+  registra(db, autore, "Impostazioni", `Nuova categoria «${n}»`);
+}
+
+function rinominaCategoria(db, vecchio, nuovo, autore) {
+  const attuale = trova(db, vecchio);
+  if (!attuale) return "Categoria non trovata.";
+  const { nome: n, errore } = controllaNome(nuovo);
+  if (errore) return errore;
+  if (n === attuale) return;
+  const altra = trova(db, n);
+  if (altra && altra !== attuale) return `La categoria «${altra}» esiste già: per unirle, elimina questa e scegli «${altra}» come destinazione.`;
+  inTransazione(db, () => {
+    db.prepare("DELETE FROM categorie WHERE nome = ?").run(attuale);
+    db.prepare("INSERT OR IGNORE INTO categorie (nome) VALUES (?)").run(n);
+    for (const [tabella, colonna] of [["atti", "materia"], ["scadenze", "materia"], ["categorie_squadre", "materia"]]) {
+      db.prepare(`UPDATE ${tabella} SET ${colonna} = ? WHERE ${colonna} = ?`).run(n, attuale);
+    }
+    registra(db, autore, "Impostazioni", `Categoria «${attuale}» rinominata in «${n}»`);
+  });
+}
+
+// Cosa c'è dentro una categoria (per la pagina di conferma dell'eliminazione)
+function contenutoCategoria(db, nome) {
+  const conta = (sql, ...p) => db.prepare(sql).get(...p).n;
+  return {
+    atti: conta("SELECT COUNT(*) AS n FROM atti WHERE materia = ?", nome),
+    scadenze: conta("SELECT COUNT(*) AS n FROM scadenze WHERE materia = ?", nome),
+    aperte: conta(`SELECT COUNT(*) AS n FROM scadenze WHERE materia = ? AND ${NON_CHIUSE}`, nome, ...CHIUSI),
+    squadra: squadraDiCategoria(db, nome).utenti.length,
+  };
+}
+
+// Elimina una categoria. Atti e scadenze passano a "destinazione"
+// (obbligatoria se la categoria non è vuota). La sua squadra non si sposta.
+function eliminaCategoria(db, nome, destinazione, autore) {
+  const attuale = trova(db, nome);
+  if (!attuale) return "Categoria non trovata.";
+  const c = contenutoCategoria(db, attuale);
+  const verso = destinazione ? trova(db, destinazione) : null;
+  if ((c.atti || c.scadenze) && (!verso || verso === attuale)) return "Scegli in quale categoria spostare atti e scadenze.";
+  inTransazione(db, () => {
+    if (verso) {
+      const spostate = db.prepare("SELECT id FROM scadenze WHERE materia = ?").all(attuale);
+      db.prepare("UPDATE atti SET materia = ? WHERE materia = ?").run(verso, attuale);
+      db.prepare("UPDATE scadenze SET materia = ? WHERE materia = ?").run(verso, attuale);
+      for (const s of spostate) aggiungiStorico(db, s.id, autore, `Categoria cambiata da «${attuale}» a «${verso}» (categoria eliminata)`);
+    }
+    db.prepare("DELETE FROM categorie_squadre WHERE materia = ?").run(attuale);
+    db.prepare("DELETE FROM categorie WHERE nome = ?").run(attuale);
+    registra(db, autore, "Impostazioni", `Categoria «${attuale}» eliminata` +
+      (verso ? `: ${c.atti} atti e ${c.scadenze} scadenze spostati in «${verso}»` : ""));
+  });
 }
 
 // La squadra predefinita di una categoria (solo persone attive).
@@ -104,4 +177,7 @@ function assegnaApertesenzaSquadra(db, materia, autore) {
   return elenco.length;
 }
 
-module.exports = { categorie, squadraDiCategoria, mappaSquadre, elencoCategorie, salvaSquadraCategoria, assegnaApertesenzaSquadra };
+module.exports = {
+  creaCategoria, rinominaCategoria, eliminaCategoria, contenutoCategoria, trova,
+  categorie, squadraDiCategoria, mappaSquadre, elencoCategorie, salvaSquadraCategoria, assegnaApertesenzaSquadra,
+};

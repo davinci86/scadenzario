@@ -93,9 +93,12 @@ ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}
   <div class="campo"><label for="nome">Nome dell'atto</label>
     <input id="nome" name="nome" value="${esc(v.nome ?? "")}" required maxlength="120" placeholder="Es. Ricorso avverso diniego"></div>
   <div class="due-colonne">
-    <div class="campo"><label for="materia">Materia</label>
-      <input id="materia" name="materia" value="${esc(v.materia ?? "")}" required maxlength="60" list="materie" placeholder="Es. Immigrazione">
-      <datalist id="materie">${materie.map((m) => `<option value="${esc(m)}">`).join("")}</datalist></div>
+    <div class="campo"><label for="materia">Categoria</label>
+      <select id="materia" name="materia" required>
+        <option value="">Scegli la categoria…</option>
+        ${materie.map((m) => `<option value="${esc(m)}"${v.materia === m ? " selected" : ""}>${esc(m)}</option>`).join("")}
+      </select>
+      <p class="nota">Per una categoria nuova: <a href="/admin/impostazioni?scheda=categorie">Categorie e squadre</a>.</p></div>
     <div class="campo"><label for="tipo">Tipo</label><select id="tipo" name="tipo">${sel(TIPO, v.tipo)}</select></div>
   </div>
   <fieldset class="campo riquadro-regola"><legend>Come si calcola il termine</legend>
@@ -134,7 +137,7 @@ function paginaCambio(utente, atto, nuovo, { prima, dopo, interessate, valori = 
   return cornice(utente, { titolo: "Modifica dei termini", contenuto: `
 <nav class="briciole"><a href="/admin/impostazioni/atti/${atto.id}"><span aria-hidden="true">←</span> ${esc(atto.nome)}</a></nav>
 <h1>Modifica dei termini</h1>
-<p class="tenue">${esc(atto.nome)} · ${esc(atto.materia)}</p>
+<p class="tenue">${esc(atto.nome)} · categoria ${esc(atto.materia)}</p>
 ${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}</div>` : ""}
 <form method="post" action="/admin/impostazioni/atti/${atto.id}/cambio" class="pannello modulo-cambio" id="modulo-cambio" data-nome="Modifica dei termini"
   data-oggi="${oggi()}"${errori.length ? " data-non-salvato" : ""}>
@@ -189,11 +192,24 @@ function paginaCategorie(utente, { categorie, persone, fatto, errore }) {
   return cornice(utente, { titolo: "Impostazioni", scheda: "categorie", fatto, errore, contenuto: `
 <p class="nota">Quando si inserisce una scadenza, la squadra della sua categoria si spunta da sola nel modulo: chi inserisce
   può cambiarla prima di salvare, e dopo Admin ed Editor la cambiano a mano come sempre. Una modifica qui vale per le
-  scadenze <b>nuove</b>. Le categorie sono le materie del catalogo degli atti.</p>
+  scadenze <b>nuove</b>. Ogni atto del catalogo appartiene a una categoria.</p>
+<form method="post" action="/admin/impostazioni/categorie/nuova" class="in-linea spazio-sopra" data-nome="Nuova categoria">
+  <input name="nome" required minlength="2" maxlength="60" placeholder="Nome della nuova categoria, es. Lavoro" aria-label="Nome della nuova categoria" class="campo-categoria">
+  <button class="btn piccolo pri">+ Nuova categoria</button>
+</form>
 ${categorie.length ? `<div class="griglia-categorie">${categorie.map((c) => `
 <section class="pannello">
   <h2>${esc(c.materia)}</h2>
   <p class="nota">${c.atti} ${c.atti === 1 ? "atto" : "atti"} nel catalogo${c.utenti.length ? "" : " · <b>nessuna squadra</b>: le nuove scadenze restano da assegnare"}</p>
+  <details class="gestione-categoria">
+    <summary>Rinomina o elimina</summary>
+    <form method="post" action="/admin/impostazioni/categorie/rinomina" class="in-linea" data-nome="Rinomina ${esc(c.materia)}">
+      <input type="hidden" name="nome" value="${esc(c.materia)}">
+      <input name="nuovo" value="${esc(c.materia)}" required minlength="2" maxlength="60" aria-label="Nuovo nome">
+      <button class="btn piccolo">Rinomina</button>
+    </form>
+    <p><a class="btn piccolo pericolo" href="/admin/impostazioni/categorie/elimina?nome=${encodeURIComponent(c.materia)}">Elimina la categoria…</a></p>
+  </details>
   <form method="post" action="/admin/impostazioni/categorie" class="modulo" data-nome="Squadra della categoria ${esc(c.materia)}">
     <input type="hidden" name="materia" value="${esc(c.materia)}">
     <div class="persone-categoria">${persone.map((p) => `
@@ -211,6 +227,35 @@ ${categorie.length ? `<div class="griglia-categorie">${categorie.map((c) => `
       <button class="btn piccolo">Assegnale a questa squadra</button></p>
   </form>` : ""}
 </section>`).join("")}</div>` : `<p class="nota">Nessuna categoria: aggiungi prima degli atti al catalogo.</p>`}` });
+}
+
+// ── Eliminare una categoria: conferma, con la destinazione ──
+function paginaEliminaCategoria(utente, nome, { contenuto: c, altre, errori = [] }) {
+  const vuota = !c.atti && !c.scadenze;
+  return cornice(utente, { titolo: "Elimina categoria", contenuto: `
+<nav class="briciole"><a href="/admin/impostazioni?scheda=categorie"><span aria-hidden="true">←</span> Categorie e squadre</a></nav>
+<h1>Elimina la categoria «${esc(nome)}»</h1>
+${errori.length ? `<div class="errore" role="alert">${errori.map(esc).join(" ")}</div>` : ""}
+<form method="post" action="/admin/impostazioni/categorie/elimina" class="pannello modulo-grande zona-pericolo" data-nome="Elimina categoria">
+  <input type="hidden" name="nome" value="${esc(nome)}">
+  <ul class="semplice">
+    <li><b>${c.atti}</b> ${c.atti === 1 ? "atto del catalogo" : "atti del catalogo"} e <b>${c.scadenze}</b> ${c.scadenze === 1 ? "scadenza" : "scadenze"}
+      (${c.aperte === 1 ? "1 aperta" : `${c.aperte} aperte`}) fanno parte di questa categoria.</li>
+    ${c.squadra ? `<li>La sua squadra predefinita (${c.squadra} ${c.squadra === 1 ? "persona" : "persone"}) viene tolta: per le nuove scadenze varrà quella della categoria di destinazione.</li>` : ""}
+    <li>Le squadre già assegnate alle scadenze <b>non cambiano</b>.</li>
+  </ul>
+  ${vuota ? `<p class="nota">La categoria è vuota: si può eliminare senza spostare niente.</p>` : altre.length ? `
+  <div class="campo"><label for="destinazione">In quale categoria spostare atti e scadenze?</label>
+    <select id="destinazione" name="destinazione" required>
+      <option value="">Scegli la categoria…</option>
+      ${altre.map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("")}
+    </select>
+    <p class="nota">Ogni scadenza spostata avrà una riga nel suo storico.</p></div>` : `
+  <p class="avviso">Non c'è un'altra categoria in cui spostare atti e scadenze: <a href="/admin/impostazioni?scheda=categorie">creane prima una</a>.</p>`}
+  ${vuota || altre.length ? `
+  <label class="radio"><input type="checkbox" name="conferma" value="1" required><span>Confermo: elimina la categoria <b>${esc(nome)}</b></span></label>
+  <div class="azioni"><a class="btn" href="/admin/impostazioni?scheda=categorie">Annulla</a><button class="btn pericolo">Elimina la categoria</button></div>` : ""}
+</form>` });
 }
 
 // ── Festività e chiusure ─────────────────────────────────────
@@ -262,4 +307,4 @@ function paginaValori(utente, { imp, fatto, errore }) {
 </form>` });
 }
 
-module.exports = { paginaCatalogo, paginaAtto, paginaCambio, paginaCategorie, paginaFestivita, paginaValori };
+module.exports = { paginaCatalogo, paginaAtto, paginaCambio, paginaCategorie, paginaEliminaCategoria, paginaFestivita, paginaValori };

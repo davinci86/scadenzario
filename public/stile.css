@@ -510,3 +510,8 @@ td.diverso { background: var(--ambra-tenue); font-weight: 700; }
 .griglia-categorie .pannello { margin: 0; }
 .persone-categoria { display: grid; gap: 4px; margin: 8px 0 12px; }
 .persone-categoria .persona { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.gestione-categoria { margin: 6px 0 10px; font-size: 14px; }
+.gestione-categoria summary { cursor: pointer; color: var(--tenue); font-weight: 600; font-size: 13px; }
+.gestione-categoria form, .gestione-categoria p { margin: 8px 0 0; }
+.gestione-categoria input[name=nuovo] { flex: 1; min-width: 0; }
+.campo-categoria { width: 320px; max-width: 100%; }

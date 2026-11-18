@@ -52,11 +52,13 @@ function rotteImpostazioni(db) {
 
   // ── Atti ──
   router.get("/admin/impostazioni/atti/nuovo", soloAdmin, (req, res) => {
-    res.send(V.paginaAtto(req.utente, null, { materie: C.materie(db) }));
+    res.send(V.paginaAtto(req.utente, null, { materie: Cat.categorie(db) }));
   });
   router.post("/admin/impostazioni/atti", soloAdmin, (req, res) => {
     const { dati, errori } = C.controllaAtto(req.body);
-    if (errori.length) return res.status(400).send(V.paginaAtto(req.utente, null, { valori: req.body, errori, materie: C.materie(db) }));
+    if (dati.materia && !Cat.trova(db, dati.materia)) errori.push("Scegli una categoria dell'elenco.");
+    else if (dati.materia) dati.materia = Cat.trova(db, dati.materia);
+    if (errori.length) return res.status(400).send(V.paginaAtto(req.utente, null, { valori: req.body, errori, materie: Cat.categorie(db) }));
     C.creaAtto(db, dati, req.utente.id);
     vai(res, "/admin/impostazioni", "fatto", `Atto «${dati.nome}» creato: è già disponibile nell'inserimento delle scadenze.`);
   });
@@ -64,13 +66,15 @@ function rotteImpostazioni(db) {
   router.get("/admin/impostazioni/atti/:id", soloAdmin, (req, res) => {
     const a = atto(req.params.id);
     if (!a) return vai(res, "/admin/impostazioni", "errore", "Atto non trovato.");
-    res.send(V.paginaAtto(req.utente, a, { materie: C.materie(db) }));
+    res.send(V.paginaAtto(req.utente, a, { materie: Cat.categorie(db) }));
   });
   router.post("/admin/impostazioni/atti/:id", soloAdmin, (req, res) => {
     const a = atto(req.params.id);
     if (!a) return vai(res, "/admin/impostazioni", "errore", "Atto non trovato.");
     const { dati, errori } = C.controllaAtto(req.body);
-    if (errori.length) return res.status(400).send(V.paginaAtto(req.utente, a, { valori: req.body, errori, materie: C.materie(db) }));
+    if (dati.materia && !Cat.trova(db, dati.materia)) errori.push("Scegli una categoria dell'elenco.");
+    else if (dati.materia) dati.materia = Cat.trova(db, dati.materia);
+    if (errori.length) return res.status(400).send(V.paginaAtto(req.utente, a, { valori: req.body, errori, materie: Cat.categorie(db) }));
     const cambi = C.aggiornaDatiAtto(db, a, dati, req.utente.id);
     if (C.regolaCambia(a, dati)) {
       // La regola cambia: prima di applicarla serve sapere perché e da quando
@@ -139,6 +143,30 @@ function rotteImpostazioni(db) {
     const materia = String(req.body?.materia ?? "");
     const errore = Cat.salvaSquadraCategoria(db, materia, req.body, req.utente.id);
     vai(res, "/admin/impostazioni?scheda=categorie", errore ? "errore" : "fatto", errore || `Squadra della categoria «${materia}» salvata: vale per le nuove scadenze.`);
+  });
+  router.post("/admin/impostazioni/categorie/nuova", soloAdmin, (req, res) => {
+    const errore = Cat.creaCategoria(db, req.body?.nome, req.utente.id);
+    vai(res, "/admin/impostazioni?scheda=categorie", errore ? "errore" : "fatto", errore || "Categoria creata: ora puoi darle una squadra.");
+  });
+  router.post("/admin/impostazioni/categorie/rinomina", soloAdmin, (req, res) => {
+    const errore = Cat.rinominaCategoria(db, req.body?.nome, req.body?.nuovo, req.utente.id);
+    vai(res, "/admin/impostazioni?scheda=categorie", errore ? "errore" : "fatto", errore || "Categoria rinominata in atti, scadenze e squadra.");
+  });
+  // Eliminare: prima la pagina di conferma, con la scelta della destinazione
+  const paginaElimina = (req, nome, errori = []) => V.paginaEliminaCategoria(req.utente, nome, {
+    contenuto: Cat.contenutoCategoria(db, nome), altre: Cat.categorie(db).filter((c) => c !== nome), errori });
+  router.get("/admin/impostazioni/categorie/elimina", soloAdmin, (req, res) => {
+    const nome = Cat.trova(db, req.query.nome);
+    if (!nome) return vai(res, "/admin/impostazioni?scheda=categorie", "errore", "Categoria non trovata.");
+    res.send(paginaElimina(req, nome));
+  });
+  router.post("/admin/impostazioni/categorie/elimina", soloAdmin, (req, res) => {
+    const nome = Cat.trova(db, req.body?.nome);
+    if (!nome) return vai(res, "/admin/impostazioni?scheda=categorie", "errore", "Categoria non trovata.");
+    if (req.body?.conferma !== "1") return res.status(400).send(paginaElimina(req, nome, ["Spunta la conferma per eliminare."]));
+    const errore = Cat.eliminaCategoria(db, nome, req.body?.destinazione, req.utente.id);
+    if (errore) return res.status(400).send(paginaElimina(req, nome, [errore]));
+    vai(res, "/admin/impostazioni?scheda=categorie", "fatto", `Categoria «${nome}» eliminata.`);
   });
   router.post("/admin/impostazioni/categorie/assegna", soloAdmin, (req, res) => {
     const materia = String(req.body?.materia ?? "");

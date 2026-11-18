@@ -60,6 +60,12 @@ function aggiornaTabelle(db) {
     referente INTEGER NOT NULL DEFAULT 0,  -- 1 = è il referente predefinito
     PRIMARY KEY (materia, utente_id)
   )`);
+  // L'elenco delle categorie: così una categoria esiste anche senza atti
+  // (es. creata per le udienze). All'avvio si aggiungono quelle già in uso.
+  db.exec(`CREATE TABLE IF NOT EXISTS categorie (nome TEXT PRIMARY KEY COLLATE NOCASE);
+    INSERT OR IGNORE INTO categorie (nome)
+      SELECT materia FROM atti WHERE materia <> '' UNION SELECT materia FROM categorie_squadre
+      UNION SELECT materia FROM scadenze WHERE materia <> '';`);
   // Dalla Tappa 5: per quanti giorni tenere ogni tipo di backup (lo decide l'Admin)
   db.exec("CREATE TABLE IF NOT EXISTS impostazioni_backup (tipo TEXT PRIMARY KEY, giorni INTEGER NOT NULL)");
   // Dalla Tappa 5: i valori predefiniti scelti dall'Admin (promemoria, termini…)

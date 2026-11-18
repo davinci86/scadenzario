@@ -123,3 +123,74 @@ test("un utente eliminato esce anche dalle squadre delle categorie", async (t) =
   await invia(indirizzo, `/admin/utenti/${id(db, "l.romano")}/elimina`, anna, { conferma: "1" });
   assert.deepEqual(C.squadraDiCategoria(db, "Immigrazione").utenti, [id(db, "g.esposito")]);
 });
+
+// ── Creare, rinominare, eliminare categorie ──────────────────
+
+test("nuova categoria: esiste anche senza atti, niente doppioni (maiuscole comprese)", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  await invia(indirizzo, "/admin/impostazioni/categorie/nuova", anna, { nome: "  Lavoro  " });
+  assert.ok(C.categorie(db).includes("Lavoro"));
+  const doppia = await invia(indirizzo, "/admin/impostazioni/categorie/nuova", anna, { nome: "lavoro" });
+  assert.match(new URL(doppia.headers.get("location"), "http://x").searchParams.get("errore"), /esiste già/);
+  // Si può già scegliere per un'udienza e per un nuovo atto
+  assert.match(await (await apri(indirizzo, "/scadenze/nuova", anna)).text(), /<option value="Lavoro"/);
+  assert.match(await (await apri(indirizzo, "/admin/impostazioni/atti/nuovo", anna)).text(), /<option value="Lavoro"/);
+});
+
+test("un atto non può avere una categoria che non esiste", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  const r = await invia(indirizzo, "/admin/impostazioni/atti", anna, { nome: "Atto di prova", materia: "Immigrazone", tipo: "scadenza",
+    evento: "notifica", direzione: "avanti", giorni: "30", feriale: "1", proroga: "1", promemoria: "7", attivo: "1" });
+  assert.equal(r.status, 400);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM atti WHERE nome = 'Atto di prova'").get().n, 0);
+});
+
+test("rinominare una categoria cambia atti, scadenze e squadra", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  const squadraPrima = C.squadraDiCategoria(db, "Immigrazione");
+  const scadenze = db.prepare("SELECT COUNT(*) AS n FROM scadenze WHERE materia = 'Immigrazione'").get().n;
+  await invia(indirizzo, "/admin/impostazioni/categorie/rinomina", anna, { nome: "Immigrazione", nuovo: "Diritto dell'immigrazione" });
+  assert.ok(!C.categorie(db).includes("Immigrazione"));
+  assert.equal(db.prepare("SELECT materia FROM atti WHERE nome LIKE 'Ricorso avverso diniego%'").get().materia, "Diritto dell'immigrazione");
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM scadenze WHERE materia = ?").get("Diritto dell'immigrazione").n, scadenze);
+  assert.deepEqual(C.squadraDiCategoria(db, "Diritto dell'immigrazione"), squadraPrima);
+  // Non si può rinominare con il nome di un'altra categoria esistente
+  const r = await invia(indirizzo, "/admin/impostazioni/categorie/rinomina", anna, { nome: "Penale", nuovo: "civile" });
+  assert.match(new URL(r.headers.get("location"), "http://x").searchParams.get("errore"), /esiste già/);
+  assert.ok(C.categorie(db).includes("Penale"));
+});
+
+test("eliminare: bisogna scegliere dove spostare atti e scadenze; poi tutto passa lì", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  const atti = db.prepare("SELECT id FROM atti WHERE materia = 'Immigrazione'").all().map((r) => r.id);
+  const scadenze = db.prepare("SELECT id FROM scadenze WHERE materia = 'Immigrazione'").all().map((r) => r.id);
+  assert.ok(atti.length && scadenze.length);
+  const squadre = scadenze.map((sid) => squadraDi(db, sid));
+
+  const conferma = await (await apri(indirizzo, "/admin/impostazioni/categorie/elimina?nome=Immigrazione", anna)).text();
+  assert.match(conferma, /In quale categoria spostare atti e scadenze/);
+  // Senza destinazione: rifiutato
+  const senza = await invia(indirizzo, "/admin/impostazioni/categorie/elimina", anna, { nome: "Immigrazione", conferma: "1" });
+  assert.equal(senza.status, 400);
+  assert.ok(C.categorie(db).includes("Immigrazione"));
+  // Con la destinazione
+  await invia(indirizzo, "/admin/impostazioni/categorie/elimina", anna, { nome: "Immigrazione", destinazione: "Civile", conferma: "1" });
+  assert.ok(!C.categorie(db).includes("Immigrazione"));
+  for (const aid of atti) assert.equal(db.prepare("SELECT materia FROM atti WHERE id = ?").get(aid).materia, "Civile");
+  for (const [i, sid] of scadenze.entries()) {
+    assert.equal(db.prepare("SELECT materia FROM scadenze WHERE id = ?").get(sid).materia, "Civile");
+    assert.deepEqual(squadraDi(db, sid), squadre[i]); // le squadre già assegnate non cambiano
+    assert.ok(db.prepare("SELECT 1 FROM storico WHERE scadenza_id = ? AND testo LIKE 'Categoria cambiata da «Immigrazione» a «Civile»%'").get(sid));
+  }
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM categorie_squadre WHERE materia = 'Immigrazione'").get().n, 0);
+  assert.match(db.prepare("SELECT dettaglio FROM registro WHERE dettaglio LIKE 'Categoria «Immigrazione» eliminata%'").get().dettaglio, /spostati in «Civile»/);
+});
+
+test("una categoria vuota si elimina con la sola conferma; solo l'Admin", async (t) => {
+  const { db, indirizzo, anna } = await preparaImmigrazione(t);
+  await invia(indirizzo, "/admin/impostazioni/categorie/nuova", anna, { nome: "Lavoro" });
+  const editor = (await accedi(indirizzo, "p.russo")).cookie;
+  assert.equal((await invia(indirizzo, "/admin/impostazioni/categorie/elimina", editor, { nome: "Lavoro", conferma: "1" })).status, 403);
+  await invia(indirizzo, "/admin/impostazioni/categorie/elimina", anna, { nome: "Lavoro", conferma: "1" });
+  assert.ok(!C.categorie(db).includes("Lavoro"));
+});
